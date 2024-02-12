@@ -41,12 +41,61 @@ class RegisterController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        addCreatUserTarget()
         setupUI()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         radiusUI()
+    }
+    
+    func addCreatUserTarget() {
+        registerButton.addTarget(self, action: #selector(creatButtonClicked), for: .touchUpInside)
+    }
+    
+    @objc func creatButtonClicked() {
+        guard let userName = userNameTextField.text, !userName.isEmpty else {
+            showError(text: "Kullanıcı ismini Boş Bırakmayınız.", image: nil, interaction: false, delay: nil)
+            return
+        }
+        
+        guard let email = emailTextField.text, !email.isEmpty else {
+            showError(text: "E-postanızı Boş Bırakmayınız", image: nil, interaction: false, delay: nil)
+            return
+        }
+        
+        guard let password = passwordTextField.text, !password.isEmpty else {
+            showError(text: "Şifrenizi Boş Bırakmayınız ", image: nil, interaction: false, delay: nil)
+            return
+        }
+        
+        showLoading(text: "Giriş İşlemi Yapılıyor", interaction: false)
+        FirebaseManager.shared.signUpUser(with: email, password: password) { result in
+            switch result {
+            case .success(let userID):
+               if let userID {
+                    let userDocumentModel = FirebaseUserDocumentModel(userID: userID, userName: userName, userEmail: email, userPassword: password)
+                    
+                    FirebaseManager.shared.creatUserDociment(userDocimentModel: userDocumentModel) { result in
+                        switch result {
+                        case .success(_):
+                            self.showSucceed(text: "Kayıt işlemi Başarılı", interaction: false, delay: nil)
+                            //-push
+                        case .failure(_):
+                            self.showError(text: "Kayıt İşlemi Tamamlandı, Ama User ID basei oluşturulmadı", image: nil, interaction: false, delay: nil)
+                            
+                        }
+                    }
+                } else {
+                    self.showSucceed(text: "Kayıt işlemi başarılı, ama user id oluşturulmadı", interaction: false, delay: nil)
+                }
+            case .failure(let failure):
+                self.showError(text: "kayıt işlemi hatasıİ: \(failure.localizedDescription)", image: nil, interaction: false, delay: nil)
+            }
+        }
+        
+        
     }
     
     func radiusUI() {

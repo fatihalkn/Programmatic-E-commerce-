@@ -16,7 +16,7 @@ class FirebaseManager {
     let auth = Auth.auth()
     let db = Firestore.firestore()
     
-    var UserID: String? {
+    var userID: String? {
         return auth.currentUser?.uid
     }
     
@@ -27,7 +27,7 @@ class FirebaseManager {
 
 extension FirebaseManager {
     
-    func signUpUser(with email: String, password: String, completion: @escaping ((Result<String, Error>) -> Void)) {
+    func signUpUser(with email: String, password: String, completion: @escaping ((Result<String?, Error>) -> Void)) {
         auth.createUser(withEmail: email, password: password) { authResult, error in
             if let error = error {
                 completion(.failure(error))
@@ -64,7 +64,7 @@ extension FirebaseManager {
             "userPassword": userDocimentModel.userPassword,
             "userID": userDocimentModel.userID
         ]
-        db.collection("Users").document(userDocimentModel.userID).setData(fields) { error in
+        db.collection("Users").document(userDocimentModel.userID ?? "boş").setData(fields) { error in
             
             if let error = error {
                 completion(.failure(error))

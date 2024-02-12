@@ -6,6 +6,10 @@
 //
 
 import UIKit
+import Firebase
+import FirebaseAuth
+import GoogleSignIn
+import ProgressHUD
 
 class LoginController: UIViewController {
     
@@ -24,7 +28,7 @@ class LoginController: UIViewController {
                                     backroundColor: .main)
     
     
-    @objc let registerButton = CustomButtons(title: "Register",
+    let registerButton = CustomButtons(title: "Register",
                                        titleColor: .main,
                                        font: .systemFont(ofSize: 17),
                                        backroundColor: .clear)
@@ -47,6 +51,8 @@ class LoginController: UIViewController {
         super.viewDidLoad()
         setupUI()
         addTargetRegisterButton()
+        addTargetGoogleButton()
+        loginButtonTap()
         
     }
     
@@ -55,19 +61,75 @@ class LoginController: UIViewController {
         radiusUI()
         
     }
+    
+    //MARK: - LOGİN BUTTON
+    
+    func loginButtonTap() {
+        loginButton.addTarget(self, action: #selector(loginButtonClicked), for: .touchUpInside)
+    }
+    
+    @objc func loginButtonClicked() {
+        guard let userName = userNameTextField.text, !userName.isEmpty else {
+            showError(text: "Kullanıcı adı Boş Bırakılamaz", image: nil, interaction: false, delay: nil)
+            return
+        }
+        
+        guard let password = passwordTextField.text, !password.isEmpty else {
+            showError(text: "Şifre Boş Bırakılamaz", image: nil, interaction: false, delay: nil)
+            return
+        }
+        showLoading(text: "Giriş Yaplıyor...", interaction: false)
+        FirebaseManager.shared.signInUser(with: userName, password: password) { result in
+            switch result {
+            case .success(_):
+                self.showSucceed(text: "Giriş işlemi Başarılı", interaction: false, delay: nil)
+                let vc = HomeController()
+                self.navigationController?.pushViewController(vc, animated: true)
+            case .failure(let failure):
+                self.showError(text: "Giriş işlemi başarısız\(failure.localizedDescription)", image: nil, interaction: false, delay: 2)
+            }
+        }
+        
+    }
   
-    //MARK: - Helpers
-    
-    
     func addTargetRegisterButton() {
-        registerButton.addTarget(self, action: #selector(registerButtonCliced), for: .touchUpInside)
+        registerButton.addTarget(self, action: #selector(registerButtonClicked), for: .touchUpInside)
         
     }
     
-    @objc func registerButtonCliced() {
+    @objc func registerButtonClicked() {
         let vc = RegisterController()
         navigationController?.pushViewController(vc, animated: true)
         
+    }
+    
+    //MARK: - GOOGLE SIGN-IN
+    func addTargetGoogleButton() {
+        singInGoogleButton.addTarget(self, action: #selector(googleButtonClicked), for: .touchUpInside)
+    }
+    
+    @objc func googleButtonClicked() {
+        
+        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+        let confing = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = confing
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: self) {  result, error in
+            if let  error = error {
+                print(error.localizedDescription)
+            }
+            guard let user = result?.user, let idToken = user.idToken?.tokenString else { return }
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
+            Auth.auth().signIn(with: credential) { result , error  in
+                if let error = error {
+                    print(error.localizedDescription)
+                } else {
+                    self.showSucceed(text: "Başarıyla oturum açıldı", interaction: false, delay: 1)
+                    let vc = HomeController()
+                    self.navigationController?.pushViewController(vc, animated: true)
+                }
+            }
+        }
     }
     
     func radiusUI() {
