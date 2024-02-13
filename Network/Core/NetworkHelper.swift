@@ -18,9 +18,27 @@ enum ErrorTypes: String, Error {
     case genaralError = "An error happened"
 }
 
-
 class NetworkHelper {
     static let shared = NetworkHelper()
     
     let baseURL = "https://fakestoreapi.com/"
+    
+    
+    func requestUrl(url: String) -> String {
+        baseURL + url
+    }
+    
+    func requestAllProducts() -> String {
+        baseURL + "products"
+    }
+    
+    func requestDetailProducts(id: Int) -> String {
+        baseURL + "\(ProductDetailEndpoint.detail.rawValue)" + "\(id)"
+    }
+    
+    func requestCategoryItems(categoryType: CategoryEndpoint) -> String {
+        baseURL + categoryType.rawValue
+    }
 }
+
+

@@ -9,20 +9,20 @@ import UIKit
 
 class RegisterController: UIViewController {
     
-    let userNameTextField = CustomTextFields(isSecureText: false, 
+    let userNameTextField = CustomTextFields(isSecureText: false,
                                              placeHolder: "Enter username",
                                              leftImage: UIImage(named: "person")!)
-    let emailTextField = CustomTextFields(isSecureText: false, 
+    let emailTextField = CustomTextFields(isSecureText: false,
                                           placeHolder: "Enter your email",
                                           leftImage: UIImage(named: "mail")!)
-    let passwordTextField = CustomTextFields(isSecureText: true, 
+    let passwordTextField = CustomTextFields(isSecureText: true,
                                              placeHolder: "Enter your password",
                                              leftImage: UIImage(named: "password")!)
-    let registerButton = CustomButtons(title: "Create Account", 
+    let registerButton = CustomButtons(title: "Create Account",
                                        titleColor: .white,
                                        font: .systemFont(ofSize: 17),
                                        backroundColor: .main)
-    let loginButton = CustomButtons(title: "Login", titleColor: .main, 
+    let loginButton = CustomButtons(title: "Login", titleColor: .main,
                                     font: .systemFont(ofSize: 17),
                                     backroundColor: .clear)
     
@@ -33,9 +33,9 @@ class RegisterController: UIViewController {
                                            font: .systemFont(ofSize: 18, weight: .semibold),
                                            image: UIImage(named: "google"),
                                            borderWidth: 1)
-    let signInFacebookButton = CustomButtons(title: "Sign In with Google", 
+    let signInFacebookButton = CustomButtons(title: "Sign In with Google",
                                              titleColor: .black,
-                                             font: .systemFont(ofSize: 18, weight: .semibold), 
+                                             font: .systemFont(ofSize: 18, weight: .semibold),
                                              image: UIImage(named: "facebook"),
                                              borderWidth: 1)
     
@@ -74,7 +74,7 @@ class RegisterController: UIViewController {
         FirebaseManager.shared.signUpUser(with: email, password: password) { result in
             switch result {
             case .success(let userID):
-               if let userID {
+                if let userID {
                     let userDocumentModel = FirebaseUserDocumentModel(userID: userID, userName: userName, userEmail: email, userPassword: password)
                     
                     FirebaseManager.shared.creatUserDociment(userDocimentModel: userDocumentModel) { result in
@@ -118,17 +118,17 @@ class RegisterController: UIViewController {
         signInFacebookButton.layer.masksToBounds = true
         
     }
- 
+    
     func configureWithExtantion() {
         view.customAddSubViews(userNameTextField,
-                         emailTextField,
-                         passwordTextField,
-                         registerButton,
-                         loginButton,
-                         label,
-                         signInGoogleButton,
-                         signInFacebookButton)
-   
+                               emailTextField,
+                               passwordTextField,
+                               registerButton,
+                               loginButton,
+                               label,
+                               signInGoogleButton,
+                               signInFacebookButton)
+        
         userNameTextField.anchor(top: view.safeAreaLayoutGuide.topAnchor,
                                  left: view.leftAnchor,
                                  right: view.rightAnchor,
@@ -199,4 +199,4 @@ class RegisterController: UIViewController {
         configureWithExtantion()
     }
 }
-   
+

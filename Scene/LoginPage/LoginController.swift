@@ -54,6 +54,10 @@ class LoginController: UIViewController {
         addTargetGoogleButton()
         loginButtonTap()
         
+        CategoryItemsService.shared.getElectronicsProducts { _, _ in
+            
+        }
+        
     }
     
     override func viewDidLayoutSubviews() {

@@ -23,7 +23,6 @@ class NetworkManager {
                     self.handleResponse(data: data) { response in
                         completion(response)
                     }
-                    
                 } else {
                     completion(.failure(.invalidURL))
                 }
