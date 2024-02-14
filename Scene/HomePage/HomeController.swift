@@ -9,6 +9,8 @@ import UIKit
 
 class HomeController: UIViewController {
     
+    private var selectedButton: UIButton? = nil
+    
     private let homePageCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -16,22 +18,89 @@ class HomeController: UIViewController {
         layout.minimumInteritemSpacing = 20
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        collectionView.contentInset = UIEdgeInsets(top: 20, left: 20, bottom: 0, right: 20)
         return collectionView
     }()
     
+    private let homeButton = CustomButtons(title: "Home",
+                                           titleColor: .black,
+                                           font:.systemFont(ofSize: 17, weight: .medium),
+                                           backroundColor: .clear)
+    
+    private let categoryButton = CustomButtons(title: "Category",
+                                               titleColor: .black,
+                                               font: .systemFont(ofSize: 17, weight: .medium),
+                                               backroundColor: .clear)
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        homeTargetButton()
+        categoryTargetButton()
+        configureWithExtention()
         setupDelegate()
         setupRegisterCell()
-        view.backgroundColor = .white
-        view.addSubview(homePageCollectionView)
         setupNavItems()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        homePageCollectionView.frame = view.bounds
+        
+    }
+    
+    func homeTargetButton() {
+        homeButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        
+    }
+    
+    func categoryTargetButton() {
+        categoryButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+
+        
+    }
+    
+    @objc func buttonTapped(_ sender: UIButton) {
+        selectedButton?.removeBorder()
+        sender.addBottomBorderWithColor(color: .main, width: 2)
+        selectedButton = sender
+        
+        if sender == homeButton {
+            categoryButton.removeBorder()
+        } else if sender == categoryButton {
+            homeButton.removeBorder()
+        }
+        
+    }
+     func configureWithExtention() {
+        
+        view.addSubview(homeButton)
+        view.addSubview(categoryButton)
+        view.addSubview(homePageCollectionView)
+        view.backgroundColor = .white
+         
+        
+        categoryButton.anchor(top: view.safeAreaLayoutGuide.topAnchor,
+                              left: view.safeAreaLayoutGuide.centerXAnchor,
+                              right: view.safeAreaLayoutGuide.rightAnchor,
+                              paddingTop: 20,
+                              paddingRight:50,
+                              height: 50)
+        
+        homeButton.anchor(top: view.safeAreaLayoutGuide.topAnchor,
+                          left: view.safeAreaLayoutGuide.leftAnchor,
+                          right: view.safeAreaLayoutGuide.centerXAnchor,
+                          paddingTop: 20,
+                          paddingLeft: 50,
+                          height: 50)
+        
+        homePageCollectionView.anchor(top: categoryButton.bottomAnchor,
+                                      left: view.leftAnchor,
+                                      bottom: view.safeAreaLayoutGuide.bottomAnchor,
+                                      right: view.rightAnchor)
+        
+        
+        
     }
     
     func setupRegisterCell() {
@@ -53,13 +122,42 @@ class HomeController: UIViewController {
     }
     
     private func setupNavItems() {
+        
+        //Profile LeftNavBar
         let homeNavProfileView = HomeNavProfileView()
         let profileBarButton = UIBarButtonItem(customView: homeNavProfileView)
         navigationItem.leftBarButtonItems = [profileBarButton]
+        
+        // Favorite and Search RightNavBarButtons
+        let rightFavoriteButton = UIBarButtonItem()
+        let rightBarFavorite = UIImage(named: "favorite")
+        rightFavoriteButton.image = rightBarFavorite
+        
+        let rightSearchButton = UIBarButtonItem()
+        let rightBarSearch = UIImage(named: "search")
+        rightSearchButton.image = rightBarSearch
+        
+        let barButtons = [rightFavoriteButton, rightSearchButton]
+        navigationItem.rightBarButtonItems = barButtons
     }
 }
 
 
+extension UIButton {
+    private static let bottomBorderTag = 123
+    
+    func addBottomBorderWithColor(color: UIColor, width: CGFloat) {
+        let border = CALayer()
+        border.backgroundColor = color.cgColor
+        border.frame = CGRect(x: 0, y: self.frame.size.height - width, width: self.frame.size.width, height: width)
+        border.name = "\(UIButton.bottomBorderTag)"
+        self.layer.addSublayer(border)
+    }
+    
+    func removeBorder() {
+        self.layer.sublayers?.removeAll { $0 is CALayer && $0.name == "\(UIButton.bottomBorderTag)" }
+    }
+}
 
 //MARK: - Configure CollectionView
 
