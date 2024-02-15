@@ -9,6 +9,14 @@ import UIKit
 
 class CustomButtons: UIButton {
     
+    private lazy var bottomBorderView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .main
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = false
+        return view
+    }()
+    
     override init(frame: CGRect) {
         super .init(frame: .zero)
         configure()
@@ -25,8 +33,22 @@ class CustomButtons: UIButton {
     
     
     func configure() {
-        //////////////////////
+        addSubview(bottomBorderView)
         
+        NSLayoutConstraint.activate([
+            bottomBorderView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor),
+            bottomBorderView.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerXAnchor),
+            bottomBorderView.heightAnchor.constraint(equalToConstant: 3),
+            bottomBorderView.widthAnchor.constraint(equalTo: self.safeAreaLayoutGuide.widthAnchor, multiplier: 0.5)
+        ])
+    }
+    
+    func showBorder(show: Bool) {
+        if show {
+            bottomBorderView.isHidden = false
+        } else {
+            bottomBorderView.isHidden = true
+        }
     }
     
     private func set(title: String? = nil, titleColor: UIColor? = nil, font: UIFont? = nil, backroundColor: UIColor? = nil, image: UIImage? = nil, borderWidth: CGFloat? = nil) {

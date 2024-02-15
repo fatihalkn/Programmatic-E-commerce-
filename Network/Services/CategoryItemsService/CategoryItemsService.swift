@@ -8,6 +8,7 @@
 import Foundation
 
 protocol CategoryItemsServiceProtocol {
+    func getAllCategoryProducts(completion: @escaping (([Product], Error?) -> ()))
     func getElectronicsProducts(completion: @escaping (([Product], Error?) -> ()))
     func getJeweleryProducts(completion: @escaping (([Product], Error?) -> ()))
     func getMensclothingProducts(completion: @escaping (([Product], Error?) -> ()))
@@ -16,15 +17,22 @@ protocol CategoryItemsServiceProtocol {
 
 class CategoryItemsService {
     static let shared = CategoryItemsService()
-    
-    //MARK: - Private Init
-    private init() { }
-    
-    
 }
 
 //MARK: - CategoryItemsServiceProtocol
 extension CategoryItemsService: CategoryItemsServiceProtocol {
+    func getAllCategoryProducts(completion: @escaping (([Product], Error?) -> ())) {
+        NetworkManager.shared.request(type: [Product].self, url: NetworkHelper.shared.requestAllProducts(), method: .get) { response in
+            switch response {
+            case .success(let data):
+                completion(data, nil)
+            case .failure(let error):
+                print("Error in getElectronicsProducts: \(error)")
+                completion([], error)
+            }
+        }
+    }
+    
     func getElectronicsProducts(completion: @escaping (([Product], Error?) -> ())) {
         NetworkManager.shared.request(type: [Product].self, url: CategoryEndpoint.electronics.path, method: .get) { response in
             switch response {

@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "icons8-favorite-30.png",
+      "filename" : "2805052-woman-shopping-bag-and-thinking-in-studio-isolated-on-a-png-background-retail-product-sales.-happy-customer-rich-model-and-gift-bag-for-discount-mall-promotion-luxury-store-brand-and-market-deal-fit_400_400.jpg",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -17,8 +17,5 @@
   "info" : {
     "author" : "xcode",
     "version" : 1
-  },
-  "properties" : {
-    "template-rendering-intent" : "template"
   }
 }

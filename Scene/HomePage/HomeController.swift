@@ -9,16 +9,18 @@ import UIKit
 
 class HomeController: UIViewController {
     
-    private var selectedButton: UIButton? = nil
+    let categoryItemsService: CategoryItemsServiceProtocol = CategoryItemsService()
+    var homePageCollectionViewProducts: [Product] = []
     
     private let homePageCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         layout.minimumLineSpacing = 20
         layout.minimumInteritemSpacing = 20
+        layout.sectionInset = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
-        collectionView.contentInset = UIEdgeInsets(top: 20, left: 20, bottom: 0, right: 20)
+        collectionView.contentInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         return collectionView
     }()
     
@@ -42,11 +44,36 @@ class HomeController: UIViewController {
         setupDelegate()
         setupRegisterCell()
         setupNavItems()
+        setupCustomButtonsVisibility()
+        fetchAllCategories()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
+
+    }
+    
+    @objc func buttonTapped(_ sender: UIButton) {
+        if sender == homeButton {
+            homeButton.showBorder(show: true)
+            categoryButton.showBorder(show: false)
+        } else if sender == categoryButton {
+            homeButton.showBorder(show: false)
+            categoryButton.showBorder(show: true)
+        }
+    }
+    
+    func fetchAllCategories() {
+        categoryItemsService.getAllCategoryProducts { products, error in
+            if error != nil {
+                fatalError()
+            }
+            
+            self.homePageCollectionViewProducts = products
+            DispatchQueue.main.async { [weak self] in
+                self?.homePageCollectionView.reloadData()
+            }
+        }
     }
     
     func homeTargetButton() {
@@ -56,29 +83,20 @@ class HomeController: UIViewController {
     
     func categoryTargetButton() {
         categoryButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
-
-        
     }
     
-    @objc func buttonTapped(_ sender: UIButton) {
-        selectedButton?.removeBorder()
-        sender.addBottomBorderWithColor(color: .main, width: 2)
-        selectedButton = sender
-        
-        if sender == homeButton {
-            categoryButton.removeBorder()
-        } else if sender == categoryButton {
-            homeButton.removeBorder()
-        }
-        
+    func setupCustomButtonsVisibility() {
+        homeButton.showBorder(show: true)
+        categoryButton.showBorder(show: false)
     }
-     func configureWithExtention() {
+    
+    func configureWithExtention() {
         
         view.addSubview(homeButton)
         view.addSubview(categoryButton)
         view.addSubview(homePageCollectionView)
         view.backgroundColor = .white
-         
+        
         
         categoryButton.anchor(top: view.safeAreaLayoutGuide.topAnchor,
                               left: view.safeAreaLayoutGuide.centerXAnchor,
@@ -132,30 +150,16 @@ class HomeController: UIViewController {
         let rightFavoriteButton = UIBarButtonItem()
         let rightBarFavorite = UIImage(named: "favorite")
         rightFavoriteButton.image = rightBarFavorite
+        rightFavoriteButton.tintColor = .darkGray
         
         let rightSearchButton = UIBarButtonItem()
         let rightBarSearch = UIImage(named: "search")
         rightSearchButton.image = rightBarSearch
+        rightSearchButton.tintColor  = .darkGray
         
         let barButtons = [rightFavoriteButton, rightSearchButton]
         navigationItem.rightBarButtonItems = barButtons
-    }
-}
-
-
-extension UIButton {
-    private static let bottomBorderTag = 123
-    
-    func addBottomBorderWithColor(color: UIColor, width: CGFloat) {
-        let border = CALayer()
-        border.backgroundColor = color.cgColor
-        border.frame = CGRect(x: 0, y: self.frame.size.height - width, width: self.frame.size.width, height: width)
-        border.name = "\(UIButton.bottomBorderTag)"
-        self.layer.addSublayer(border)
-    }
-    
-    func removeBorder() {
-        self.layer.sublayers?.removeAll { $0 is CALayer && $0.name == "\(UIButton.bottomBorderTag)" }
+        
     }
 }
 
@@ -163,17 +167,19 @@ extension UIButton {
 
 extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        return homePageCollectionViewProducts.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: HomePageCustomCell.identifier, for: indexPath)
+        let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: HomePageCustomCell.identifier, for: indexPath) as! HomePageCustomCell
+        let product = homePageCollectionViewProducts[indexPath.item]
+        cell.configure(data: product)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let cellWidth: CGFloat = (collectionView.frame.width - (20 + 20 + 20)) / 2
-        let cellHight: CGFloat = 180
+        let cellHight: CGFloat = 250
         return(.init(width: cellWidth, height: cellHight))
     }
     
@@ -187,8 +193,10 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: view.frame.size.width, height: view.frame.size.height / 3)
+        return CGSize(width: view.frame.size.width, height: view.frame.size.height / 4)
     }
+    
+    
     
     
     
