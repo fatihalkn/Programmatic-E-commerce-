@@ -11,8 +11,8 @@ import Foundation
 enum CategoryEndpoint: String {
     case electronics = "products/category/electronics"
     case jewelery = "products/category/jewelery"
-    case mensclothing = "products/category/mensclothing"
-    case womensclothing = "products/category/womensclothing"
+    case mensclothing = "products/category/men's%20clothing"
+    case womensclothing = "products/category/women's%20clothing"
     
     var path: String {
         switch self {

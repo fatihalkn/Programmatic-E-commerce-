@@ -16,7 +16,7 @@ class ProductDetailService {
     static let shared = ProductDetailService()
     
     //MARK: - Private Init
-    private init() { }
+    
     
     
 }

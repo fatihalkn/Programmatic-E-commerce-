@@ -66,6 +66,14 @@ class HomeMainCollectionHeader: UICollectionReusableView {
                                       forCellWithReuseIdentifier: HeaderCollectionViewCell.identifier)
     }
     
+    func addTargerSeeAllButton() {
+        seeAllButton.addTarget(self, action: #selector(seeAllButtonClicked), for: .touchUpInside)
+    }
+    
+    @objc func seeAllButtonClicked() {
+        
+    }
+    
     func configureCollectionView() {
         addSubview(headerCollectionView)
         addSubview(titleArrifals)

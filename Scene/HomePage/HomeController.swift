@@ -7,10 +7,16 @@
 
 import UIKit
 
+enum HomeCurrentSelectedButtonType {
+    case home
+    case category
+}
+
 class HomeController: UIViewController {
     
     let categoryItemsService: CategoryItemsServiceProtocol = CategoryItemsService()
     var homePageCollectionViewProducts: [Product] = []
+    var homePageCategoryCollectionViewCategories: [Category] = [.electronics, .jewelery, .womenSClothing, .menSClothing]
     
     private let homePageCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -34,7 +40,13 @@ class HomeController: UIViewController {
                                                font: .systemFont(ofSize: 17, weight: .medium),
                                                backroundColor: .clear)
     
-    
+    private var currentSelectedButtonType: HomeCurrentSelectedButtonType = .home {
+        didSet {
+            if currentSelectedButtonType != oldValue {
+                homePageCollectionView.reloadData()
+            }
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,30 +62,46 @@ class HomeController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
+        
     }
     
     @objc func buttonTapped(_ sender: UIButton) {
         if sender == homeButton {
             homeButton.showBorder(show: true)
             categoryButton.showBorder(show: false)
+            currentSelectedButtonType = .home
         } else if sender == categoryButton {
             homeButton.showBorder(show: false)
             categoryButton.showBorder(show: true)
+            currentSelectedButtonType = .category
         }
     }
     
     func fetchAllCategories() {
-        categoryItemsService.getAllCategoryProducts { products, error in
-            if error != nil {
-                fatalError()
+        switch currentSelectedButtonType {
+        case .home:
+            categoryItemsService.getAllCategoryProducts { products, error in
+                if error != nil {
+                    fatalError()
+                }
+                self.homePageCollectionViewProducts = products
+                DispatchQueue.main.async { [weak self] in
+                    self?.homePageCollectionView.reloadData()
+                }
             }
-            
-            self.homePageCollectionViewProducts = products
-            DispatchQueue.main.async { [weak self] in
-                self?.homePageCollectionView.reloadData()
+        case .category:
+            categoryItemsService.getAllCategoryProducts { products, error in
+                if error != nil {
+                    print(error?.localizedDescription)
+                }
+                self.homePageCollectionViewProducts = products
+                DispatchQueue.main.async {
+                self.homePageCollectionView.reloadData()
+
+                }
             }
         }
+        
     }
     
     func homeTargetButton() {
@@ -96,8 +124,6 @@ class HomeController: UIViewController {
         view.addSubview(categoryButton)
         view.addSubview(homePageCollectionView)
         view.backgroundColor = .white
-        
-        
         categoryButton.anchor(top: view.safeAreaLayoutGuide.topAnchor,
                               left: view.safeAreaLayoutGuide.centerXAnchor,
                               right: view.safeAreaLayoutGuide.rightAnchor,
@@ -116,22 +142,23 @@ class HomeController: UIViewController {
                                       left: view.leftAnchor,
                                       bottom: view.safeAreaLayoutGuide.bottomAnchor,
                                       right: view.rightAnchor)
-        
-        
-        
     }
     
     func setupRegisterCell() {
-        homePageCollectionView.register(
-            HomePageCustomCell.self,
-            forCellWithReuseIdentifier: HomePageCustomCell.identifier
-        )
         
-        homePageCollectionView.register(
-            HomeMainCollectionHeader.self,
-            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-            withReuseIdentifier: HomeMainCollectionHeader.identifier
-        )
+            homePageCollectionView.register(
+                HomePageCustomCell.self,
+                forCellWithReuseIdentifier: HomePageCustomCell.identifier)
+            
+            homePageCollectionView.register(
+                HomeMainCollectionHeader.self,
+                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                withReuseIdentifier: HomeMainCollectionHeader.identifier)
+            
+      
+            homePageCollectionView.register(CategoryViewCell.self, forCellWithReuseIdentifier: CategoryViewCell.identifier)
+
+        
     }
     
     func setupDelegate() {
@@ -159,45 +186,95 @@ class HomeController: UIViewController {
         
         let barButtons = [rightFavoriteButton, rightSearchButton]
         navigationItem.rightBarButtonItems = barButtons
-        
     }
 }
 
 //MARK: - Configure CollectionView
 
 extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return homePageCollectionViewProducts.count
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        switch currentSelectedButtonType {
+        case .home:
+            if let selectedProductID = homePageCollectionViewProducts[indexPath.item].id {
+                let productsDetail = ProductsDetail()
+                productsDetail.productID = selectedProductID
+                navigationController?.pushViewController(productsDetail, animated: true)
+            } else {
+                print("Error")
+            }
+            
+        case .category:
+            let selectedCategory = homePageCategoryCollectionViewCategories[indexPath.item]
+            let categoryListViewController = CategoryListViewController()
+            categoryListViewController.category = selectedCategory
+            navigationController?.pushViewController(categoryListViewController, animated: true)
+        }
     }
     
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        switch currentSelectedButtonType {
+        case .home:
+            return homePageCollectionViewProducts.count
+        case .category:
+            return homePageCategoryCollectionViewCategories.count
+        }
+    }
+    
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: HomePageCustomCell.identifier, for: indexPath) as! HomePageCustomCell
-        let product = homePageCollectionViewProducts[indexPath.item]
-        cell.configure(data: product)
-        return cell
+        switch currentSelectedButtonType {
+        case .home:
+            let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: HomePageCustomCell.identifier, for: indexPath) as! HomePageCustomCell
+            let product = homePageCollectionViewProducts[indexPath.item]
+            cell.configure(data: product)
+            return cell
+        case .category:
+            let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: CategoryViewCell.identifier, for: indexPath) as! CategoryViewCell
+            let category = homePageCategoryCollectionViewCategories[indexPath.item]
+            cell.configure(data: category)
+            return cell
+        }
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let cellWidth: CGFloat = (collectionView.frame.width - (20 + 20 + 20)) / 2
-        let cellHight: CGFloat = 250
-        return(.init(width: cellWidth, height: cellHight))
+        switch currentSelectedButtonType {
+        case .home:
+            let cellWidth: CGFloat = (collectionView.frame.width - (20 + 20 + 20)) / 2
+            let cellHight: CGFloat = 250
+            return(.init(width: cellWidth, height: cellHight))
+        case .category:
+            let cellWidth: CGFloat = collectionView.frame.width - 50
+            let cellHight: CGFloat = 150
+            return(.init(width: cellWidth, height: cellHight))
+        }
+        
+    
+        
     }
     
     //MARK: - HomePageHeader
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        if kind == UICollectionView.elementKindSectionHeader {
-            return collectionView.dequeueReusableSupplementaryView(ofKind: kind,withReuseIdentifier: HomeMainCollectionHeader.identifier,for: indexPath)
+        switch currentSelectedButtonType {
+        case .home:
+            if kind == UICollectionView.elementKindSectionHeader {
+                return collectionView.dequeueReusableSupplementaryView(ofKind: kind,withReuseIdentifier: HomeMainCollectionHeader.identifier,for: indexPath)
+            }
+            return UICollectionReusableView()
+        case .category:
+            return UICollectionReusableView()
         }
-        return UICollectionReusableView()
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: view.frame.size.width, height: view.frame.size.height / 4)
+        switch currentSelectedButtonType {
+        case .home:
+            return CGSize(width: view.frame.size.width, height: view.frame.size.height / 4)
+        case .category:
+            return CGSize()
+        }
     }
-    
-    
-    
-    
-    
 }
