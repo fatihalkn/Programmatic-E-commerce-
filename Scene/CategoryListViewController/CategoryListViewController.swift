@@ -118,6 +118,24 @@ extension CategoryListViewController: UICollectionViewDelegate, UICollectionView
         return(.init(width: cellWidth, height: cellHight))
     }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if let selectedProductID = categoryProducts[indexPath.item].id {
+            let productDetail = ProductsDetail()
+            productDetail.productID = selectedProductID
+            navigationController?.pushViewController(productDetail, animated: true)
+            
+            if let selectedProductTitle = categoryProducts[indexPath.item].title {
+                productDetail.title = selectedProductTitle
+            } else {
+                print("Ürün İsmi yazılmadı")
+            }
+            
+        } else {
+            print("Detay Sayfasına gidilmedi")
+
+        }
+    }
+    
 }
 
 

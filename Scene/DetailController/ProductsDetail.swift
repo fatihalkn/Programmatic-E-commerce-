@@ -11,6 +11,7 @@ import UIKit
 class ProductsDetail: UIViewController {
     
     var productID: Int?
+    var productTitle: String?
     
     private let detailService : ProductDetailServiceProtocol = ProductDetailService()
     

@@ -15,7 +15,6 @@ class TabBarController: UITabBarController {
         self.tabBar.barTintColor = .bg
         self.tabBar.tintColor = .main
         self.tabBar.unselectedItemTintColor = .darkGray
-      
         
     }
     
@@ -28,11 +27,12 @@ class TabBarController: UITabBarController {
     }
     
     private func createNav(title: String, image: UIImage, vc: UIViewController) -> UINavigationController {
+        
         let nav = UINavigationController(rootViewController: vc)
         nav.tabBarItem.title = title
         nav.tabBarItem.image = image
 //        nav.viewControllers.first?.navigationItem.title = title + " Controller"
-        nav.viewControllers.first?.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Home", style: .plain, target: nil, action: nil)
+//        nav.viewControllers.first?.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Home", style: .plain, target: nil, action: nil)
         
         
         return nav

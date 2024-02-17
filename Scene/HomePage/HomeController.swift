@@ -13,7 +13,7 @@ enum HomeCurrentSelectedButtonType {
 }
 
 class HomeController: UIViewController {
-    
+        
     let categoryItemsService: CategoryItemsServiceProtocol = CategoryItemsService()
     var homePageCollectionViewProducts: [Product] = []
     var homePageCategoryCollectionViewCategories: [Category] = [.electronics, .jewelery, .womenSClothing, .menSClothing]
@@ -58,6 +58,7 @@ class HomeController: UIViewController {
         setupNavItems()
         setupCustomButtonsVisibility()
         fetchAllCategories()
+        
     }
     
     override func viewDidLayoutSubviews() {
@@ -82,7 +83,7 @@ class HomeController: UIViewController {
         case .home:
             categoryItemsService.getAllCategoryProducts { products, error in
                 if error != nil {
-                    fatalError()
+                    return
                 }
                 self.homePageCollectionViewProducts = products
                 DispatchQueue.main.async { [weak self] in
@@ -174,18 +175,31 @@ class HomeController: UIViewController {
         navigationItem.leftBarButtonItems = [profileBarButton]
         
         // Favorite and Search RightNavBarButtons
-        let rightFavoriteButton = UIBarButtonItem()
+        let favoriteButton = UIButton(type: .system)
         let rightBarFavorite = UIImage(named: "favorite")
-        rightFavoriteButton.image = rightBarFavorite
-        rightFavoriteButton.tintColor = .darkGray
+        favoriteButton.setImage(rightBarFavorite, for: .normal)
+        favoriteButton.tintColor = .darkGray
+        let rightFavoriteButton = UIBarButtonItem(customView: favoriteButton)
         
-        let rightSearchButton = UIBarButtonItem()
-        let rightBarSearch = UIImage(named: "search")
-        rightSearchButton.image = rightBarSearch
-        rightSearchButton.tintColor  = .darkGray
-        
+        let serachButton = UIButton(type: .system)
+        serachButton.setImage(UIImage(named: "search"), for: .normal)
+        serachButton.tintColor  = .darkGray
+        let rightSearchButton = UIBarButtonItem(customView: serachButton)
         let barButtons = [rightFavoriteButton, rightSearchButton]
         navigationItem.rightBarButtonItems = barButtons
+        
+       // AddTarget Navigation Rigtbar Buttos
+        favoriteButton.addTarget(self, action: #selector(favoriteButtonClicked), for: .touchUpInside)
+        serachButton.addTarget(self, action: #selector(searchButtonClicked), for: .touchUpInside)
+        
+    }
+    
+    @objc func searchButtonClicked() {
+        seeAllButtonClicked()
+    }
+    
+    @objc func favoriteButtonClicked() {
+        tabBarController?.selectedIndex = 2
     }
 }
 
@@ -201,7 +215,7 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
                 productsDetail.productID = selectedProductID
                 navigationController?.pushViewController(productsDetail, animated: true)
             } else {
-                print("Error")
+                print("Detay Sayfasına gidilmedi")
             }
             
         case .category:
@@ -260,7 +274,9 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
         switch currentSelectedButtonType {
         case .home:
             if kind == UICollectionView.elementKindSectionHeader {
-                return collectionView.dequeueReusableSupplementaryView(ofKind: kind,withReuseIdentifier: HomeMainCollectionHeader.identifier,for: indexPath)
+                let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind,withReuseIdentifier: HomeMainCollectionHeader.identifier,for: indexPath) as! HomeMainCollectionHeader
+                header.delegate = self
+                return header
             }
             return UICollectionReusableView()
         case .category:
@@ -277,4 +293,12 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
             return CGSize()
         }
     }
+}
+
+extension HomeController : HeaderDelegate {
+    func seeAllButtonClicked() {
+        tabBarController?.selectedIndex = 3
+    }
+    
+    
 }

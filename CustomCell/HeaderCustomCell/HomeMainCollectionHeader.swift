@@ -5,10 +5,16 @@
 //  Created by Fatih on 13.02.2024.
 //
 
+protocol HeaderDelegate {
+    func seeAllButtonClicked()
+}
+
 import UIKit
 
 class HomeMainCollectionHeader: UICollectionReusableView {
     static let identifier = "HomeMainCollectionHeader"
+    
+    var delegate: HeaderDelegate?
     
     private let headerCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -48,6 +54,7 @@ class HomeMainCollectionHeader: UICollectionReusableView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupRegister()
+        addTargerSeeAllButton()
     }
     
     override func layoutSubviews() {
@@ -71,7 +78,7 @@ class HomeMainCollectionHeader: UICollectionReusableView {
     }
     
     @objc func seeAllButtonClicked() {
-        
+        delegate?.seeAllButtonClicked()
     }
     
     func configureCollectionView() {
