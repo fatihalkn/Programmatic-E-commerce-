@@ -16,11 +16,11 @@ class LoginController: UIViewController {
     //MARK: - Varibles
     let userNameTextField = CustomTextFields(isSecureText: false,
                                              placeHolder: "Enter your mail",
-                                             leftImage: UIImage(named: "mail")!)
+                                             leftImage: UIImage(named: "mail")!,userName: "fatihalkan@gmail.com", password: nil)
     
     let passwordTextField = CustomTextFields(isSecureText: true,
                                              placeHolder: "Enter your password",
-                                             leftImage: UIImage(named: "password")!)
+                                             leftImage: UIImage(named: "password")!,userName: nil,password: "123123")
     
     let loginButton = CustomButtons(title: "Login",
                                     titleColor: .white,

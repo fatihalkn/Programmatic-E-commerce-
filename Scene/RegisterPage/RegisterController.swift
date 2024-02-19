@@ -11,13 +11,13 @@ class RegisterController: UIViewController {
     
     let userNameTextField = CustomTextFields(isSecureText: false,
                                              placeHolder: "Enter username",
-                                             leftImage: UIImage(named: "person")!)
+                                             leftImage: UIImage(named: "person")!,userName: nil,password: nil)
     let emailTextField = CustomTextFields(isSecureText: false,
                                           placeHolder: "Enter your email",
-                                          leftImage: UIImage(named: "mail")!)
+                                          leftImage: UIImage(named: "mail")!,userName: nil,password: nil)
     let passwordTextField = CustomTextFields(isSecureText: true,
                                              placeHolder: "Enter your password",
-                                             leftImage: UIImage(named: "password")!)
+                                             leftImage: UIImage(named: "password")!,userName: nil,password: nil)
     let registerButton = CustomButtons(title: "Create Account",
                                        titleColor: .white,
                                        font: .systemFont(ofSize: 17),
@@ -75,9 +75,14 @@ class RegisterController: UIViewController {
             switch result {
             case .success(let userID):
                 if let userID {
-                    let userDocumentModel = FirebaseUserDocumentModel(userID: userID, userName: userName, userEmail: email, userPassword: password)
+                    let userDocumentModel = FirebaseUserDocumentModel(userID: userID, 
+                                                                      userName: userName,
+                                                                      userEmail: email,
+                                                                      userPassword: password,
+                                                                      userFovoriteProducts: [],
+                                                                      userTappedProducts: [])
                     
-                    FirebaseManager.shared.creatUserDociment(userDocimentModel: userDocumentModel) { result in
+                    FirebaseManager.shared.creatUserDocument(userDocumentModel: userDocumentModel) { result in
                         switch result {
                         case .success(_):
                             self.showSucceed(text: "Kayıt işlemi Başarılı", interaction: false, delay: nil)

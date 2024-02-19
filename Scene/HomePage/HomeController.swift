@@ -181,16 +181,16 @@ class HomeController: UIViewController {
         favoriteButton.tintColor = .darkGray
         let rightFavoriteButton = UIBarButtonItem(customView: favoriteButton)
         
-        let serachButton = UIButton(type: .system)
-        serachButton.setImage(UIImage(named: "search"), for: .normal)
-        serachButton.tintColor  = .darkGray
-        let rightSearchButton = UIBarButtonItem(customView: serachButton)
+        let rightSerachButton1 = UIButton(type: .system)
+        rightSerachButton1.setImage(UIImage(named: "search"), for: .normal)
+        rightSerachButton1.tintColor  = .darkGray
+        let rightSearchButton = UIBarButtonItem(customView: rightSerachButton1)
         let barButtons = [rightFavoriteButton, rightSearchButton]
         navigationItem.rightBarButtonItems = barButtons
         
        // AddTarget Navigation Rigtbar Buttos
         favoriteButton.addTarget(self, action: #selector(favoriteButtonClicked), for: .touchUpInside)
-        serachButton.addTarget(self, action: #selector(searchButtonClicked), for: .touchUpInside)
+        rightSerachButton1.addTarget(self, action: #selector(searchButtonClicked), for: .touchUpInside)
         
     }
     
@@ -215,7 +215,7 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
                 productsDetail.productID = selectedProductID
                 navigationController?.pushViewController(productsDetail, animated: true)
             } else {
-                print("Detay Sayfasına gidilmedi")
+                print("Error")
             }
             
         case .category:
@@ -242,6 +242,7 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
             let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: HomePageCustomCell.identifier, for: indexPath) as! HomePageCustomCell
             let product = homePageCollectionViewProducts[indexPath.item]
             cell.configure(data: product)
+            cell.delegate = self
             return cell
         case .category:
             let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: CategoryViewCell.identifier, for: indexPath) as! CategoryViewCell
@@ -299,6 +300,11 @@ extension HomeController : HeaderDelegate {
     func seeAllButtonClicked() {
         tabBarController?.selectedIndex = 3
     }
-    
-    
 }
+
+extension HomeController: FavoriteButtonDelegate {
+    func clickedFavoriteButton(id: Int) {
+        
+    }
+}
+

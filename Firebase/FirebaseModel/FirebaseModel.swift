@@ -8,8 +8,10 @@
 import Foundation
 
 struct FirebaseUserDocumentModel: Codable {
-    var userID : String?
+    var userID : String
     var userName: String
     var userEmail: String
     var userPassword: String
+    var userFovoriteProducts: [Product]
+    var userTappedProducts: [String]
 }

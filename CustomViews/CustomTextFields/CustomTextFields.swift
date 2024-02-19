@@ -20,9 +20,9 @@ class CustomTextFields: UITextField {
         fatalError("init(coder:) has not been implemented")
     }
     
-    convenience init(isSecureText: Bool, placeHolder: String, leftImage: UIImage) {
+    convenience init(isSecureText: Bool, placeHolder: String, leftImage: UIImage,userName:String?, password:String?) {
         self.init(frame: .zero)
-        set(isSecureText: isSecureText, placeHolder: placeHolder, leftImage: leftImage)
+        set(isSecureText: isSecureText, placeHolder: placeHolder, leftImage: leftImage,text: userName,password: password)
     }
     
     override func layoutSubviews() {
@@ -51,9 +51,10 @@ class CustomTextFields: UITextField {
         textColor = .black
         backgroundColor = .secondarySystemBackground
         leftViewMode = .always
+        
     }
     
-    private func set(isSecureText: Bool, placeHolder: String, leftImage: UIImage) {
+    private func set(isSecureText: Bool, placeHolder: String, leftImage: UIImage, text:String?, password:String?) {
         isSecureTextEntry = isSecureText
         placeholder = placeHolder
         let leftImageView = UIImageView()

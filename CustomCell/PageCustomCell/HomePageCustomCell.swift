@@ -7,8 +7,16 @@
 
 import UIKit
 import SDWebImage
+protocol FavoriteButtonDelegate {
+    func clickedFavoriteButton(id:Int)
+}
+
 
 class HomePageCustomCell: UICollectionViewCell {
+    var delegate: FavoriteButtonDelegate?
+    
+    var product: Product?
+    private var isFavorite: Bool = false
     
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
@@ -22,7 +30,7 @@ class HomePageCustomCell: UICollectionViewCell {
     }()
     
     private lazy var favoriteButton: UIButton = {
-       let button = UIButton()
+        let button = UIButton()
         button.setImage(.favorite, for: .normal)
         button.tintColor = .white
         button.backgroundColor = .gray.withAlphaComponent(0.5)
@@ -71,20 +79,81 @@ class HomePageCustomCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
-        
-
-        
-        
+        addTargetFavoriteButton()
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
+        
+        checkIsProductsFavorite()
         radiusUI()
+
+        
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    
+    func addTargetFavoriteButton() {
+        favoriteButton.addTarget(self, action: #selector(favoriteButtonClick), for: .touchUpInside)
+    }
+    
+    @objc func favoriteButtonClick() {
+
+        setButtonColor(isFavorite: !isFavorite)
+        handleFavoriteButton()
+        delegate?.clickedFavoriteButton(id: product?.id ?? 0)
+    }
+    
+    func handleFavoriteButton() {
+        guard let userID = FirebaseManager.shared.userID, let product  else {
+            setButtonColor(isFavorite: isFavorite)
+            return
+        }
+        
+        FirebaseManager.shared.updateFavoriteProduct(userID: userID, product: product, willAdd: !isFavorite) { result in
+            switch result {
+            case .success(_):
+                break
+            case .failure(let failure):
+                self.setButtonColor(isFavorite: false)
+                if self.isFavorite {
+                    print(failure.localizedDescription)
+                    
+                } else {
+                    print(failure.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    func updateTappedNews() {
+        guard let userID = FirebaseManager.shared.userID, let productTitle = product?.title else { return }
+        FirebaseManager.shared.updateUserTapperdProduts(userID: userID, productTitle: productTitle)
+    }
+    
+    func checkIsProductsFavorite() {
+        FirebaseManager.shared.checkIsProductsFavorite(produtcs: product) { isFavorite in
+            self.isFavorite = isFavorite
+            self.setButtonColor(isFavorite: isFavorite)
+        }
+    }
+    
+    func setButtonColor(isFavorite: Bool) {
+        DispatchQueue.main.async {
+            if isFavorite {
+                self.favoriteButton.setImage(.hearthFill, for: .normal)
+                self.favoriteButton.tintColor = .red
+            } else {
+                self.favoriteButton.setImage(.favorite, for: .normal)
+                self.favoriteButton.tintColor = .white
+            }
+
+        }
+    }
+    
     
 }
 
@@ -96,7 +165,12 @@ extension HomePageCustomCell {
         favoriteButton.layer.masksToBounds = true
     }
     
+   
+    
+
+    
     func configure(data: Product) {
+        self.product = data
         productTitle.text = data.title
         productCategory.text = "CATEGORY =\(data.category!)"
         productPrice.text = "\(data.price!)$"
@@ -114,7 +188,7 @@ extension HomePageCustomCell {
         addSubview(productTitle)
         addSubview(productCategory)
         addSubview(productPrice)
-     
+        
         NSLayoutConstraint.activate([
             imageView.topAnchor.constraint(equalTo: self.topAnchor),
             imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
