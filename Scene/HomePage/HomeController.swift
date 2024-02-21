@@ -13,10 +13,10 @@ enum HomeCurrentSelectedButtonType {
 }
 
 class HomeController: UIViewController {
-        
     let categoryItemsService: CategoryItemsServiceProtocol = CategoryItemsService()
     var homePageCollectionViewProducts: [Product] = []
     var homePageCategoryCollectionViewCategories: [Category] = [.electronics, .jewelery, .womenSClothing, .menSClothing]
+    var favoriteProductIDs: [Int] = []
     
     private let homePageCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -50,6 +50,7 @@ class HomeController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         homeTargetButton()
         categoryTargetButton()
         configureWithExtention()
@@ -58,6 +59,24 @@ class HomeController: UIViewController {
         setupNavItems()
         setupCustomButtonsVisibility()
         fetchAllCategories()
+    }
+    
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        FirebaseManager.shared.fetchUserDocument { result in
+            switch result {
+            case .success(let userDocumentModel):
+               let userFavorites = userDocumentModel.userFovoriteProducts
+                self.favoriteProductIDs = userFavorites
+                DispatchQueue.main.async {
+                    self.homePageCollectionView.reloadData()
+                }
+            case .failure(let failure):
+                break
+            }
+        }
         
     }
     
@@ -65,6 +84,8 @@ class HomeController: UIViewController {
         super.viewDidLayoutSubviews()
         
     }
+    
+   
     
     @objc func buttonTapped(_ sender: UIButton) {
         if sender == homeButton {
@@ -90,6 +111,7 @@ class HomeController: UIViewController {
                     self?.homePageCollectionView.reloadData()
                 }
             }
+            
         case .category:
             categoryItemsService.getAllCategoryProducts { products, error in
                 if error != nil {
@@ -156,10 +178,7 @@ class HomeController: UIViewController {
                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                 withReuseIdentifier: HomeMainCollectionHeader.identifier)
             
-      
             homePageCollectionView.register(CategoryViewCell.self, forCellWithReuseIdentifier: CategoryViewCell.identifier)
-
-        
     }
     
     func setupDelegate() {
@@ -191,7 +210,6 @@ class HomeController: UIViewController {
        // AddTarget Navigation Rigtbar Buttos
         favoriteButton.addTarget(self, action: #selector(favoriteButtonClicked), for: .touchUpInside)
         rightSerachButton1.addTarget(self, action: #selector(searchButtonClicked), for: .touchUpInside)
-        
     }
     
     @objc func searchButtonClicked() {
@@ -242,6 +260,16 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
             let cell = homePageCollectionView.dequeueReusableCell(withReuseIdentifier: HomePageCustomCell.identifier, for: indexPath) as! HomePageCustomCell
             let product = homePageCollectionViewProducts[indexPath.item]
             cell.configure(data: product)
+            if let productId = product.id {
+                if favoriteProductIDs.contains(productId) {
+                    cell.isFavorite = true
+                    cell.setButtonColor(isFavorite: true)
+                } else {
+                    cell.isFavorite = false
+                    cell.setButtonColor(isFavorite: false)
+                }
+            }
+            
             cell.delegate = self
             return cell
         case .category:
@@ -264,9 +292,7 @@ extension HomeController: UICollectionViewDelegate, UICollectionViewDataSource, 
             let cellHight: CGFloat = 150
             return(.init(width: cellWidth, height: cellHight))
         }
-        
-    
-        
+ 
     }
     
     //MARK: - HomePageHeader
@@ -304,7 +330,26 @@ extension HomeController : HeaderDelegate {
 
 extension HomeController: FavoriteButtonDelegate {
     func clickedFavoriteButton(id: Int) {
-        
+            if let index = favoriteProductIDs.firstIndex(of: id) {
+                favoriteProductIDs.remove(at: index)
+                showSucceed(text: "Product Removed From Favorites", interaction: true, delay: 2)
+            } else {
+                favoriteProductIDs.append(id)
+                showSucceed(text: "Product Added to Favorites", interaction: true, delay: 2)
+            }
+
+            if let indexPath = indexPathForProductID(id) {
+                homePageCollectionView.reloadItems(at: [indexPath])
+            }
+        }
+
+        private func indexPathForProductID(_ productID: Int) -> IndexPath? {
+            guard let index = homePageCollectionViewProducts.firstIndex(where: { $0.id == productID }) else {
+                return nil
+            }
+
+            return IndexPath(item: index, section: 0)
+        }
     }
-}
+    
 

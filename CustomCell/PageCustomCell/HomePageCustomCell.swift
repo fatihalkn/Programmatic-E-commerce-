@@ -9,14 +9,18 @@ import UIKit
 import SDWebImage
 protocol FavoriteButtonDelegate {
     func clickedFavoriteButton(id:Int)
+    
 }
 
 
 class HomePageCustomCell: UICollectionViewCell {
-    var delegate: FavoriteButtonDelegate?
     
+   static let shared = HomePageCustomCell()
+    let productDetailService: ProductDetailServiceProtocol = ProductDetailService()
+    var delegate: FavoriteButtonDelegate?
     var product: Product?
-    private var isFavorite: Bool = false
+    var isFavorite: Bool = false
+    
     
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
@@ -84,11 +88,8 @@ class HomePageCustomCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        
-        checkIsProductsFavorite()
         radiusUI()
 
-        
     }
     
     required init?(coder: NSCoder) {
@@ -101,7 +102,6 @@ class HomePageCustomCell: UICollectionViewCell {
     }
     
     @objc func favoriteButtonClick() {
-
         setButtonColor(isFavorite: !isFavorite)
         handleFavoriteButton()
         delegate?.clickedFavoriteButton(id: product?.id ?? 0)
@@ -113,6 +113,8 @@ class HomePageCustomCell: UICollectionViewCell {
             return
         }
         
+        
+        
         FirebaseManager.shared.updateFavoriteProduct(userID: userID, product: product, willAdd: !isFavorite) { result in
             switch result {
             case .success(_):
@@ -120,27 +122,17 @@ class HomePageCustomCell: UICollectionViewCell {
             case .failure(let failure):
                 self.setButtonColor(isFavorite: false)
                 if self.isFavorite {
-                    print(failure.localizedDescription)
-                    
+                    print("Silme işlemi başarısız oldu.")
                 } else {
-                    print(failure.localizedDescription)
+                    print("Ekleme işlemi başarısız oldu.")
                 }
             }
         }
     }
     
-    func updateTappedNews() {
-        guard let userID = FirebaseManager.shared.userID, let productTitle = product?.title else { return }
-        FirebaseManager.shared.updateUserTapperdProduts(userID: userID, productTitle: productTitle)
-    }
     
-    func checkIsProductsFavorite() {
-        FirebaseManager.shared.checkIsProductsFavorite(produtcs: product) { isFavorite in
-            self.isFavorite = isFavorite
-            self.setButtonColor(isFavorite: isFavorite)
-        }
-    }
-    
+   
+
     func setButtonColor(isFavorite: Bool) {
         DispatchQueue.main.async {
             if isFavorite {
@@ -150,13 +142,9 @@ class HomePageCustomCell: UICollectionViewCell {
                 self.favoriteButton.setImage(.favorite, for: .normal)
                 self.favoriteButton.tintColor = .white
             }
-
         }
     }
-    
-    
 }
-
 
 extension HomePageCustomCell {
     
@@ -165,19 +153,35 @@ extension HomePageCustomCell {
         favoriteButton.layer.masksToBounds = true
     }
     
-   
-    
 
-    
-    func configure(data: Product) {
-        self.product = data
-        productTitle.text = data.title
-        productCategory.text = "CATEGORY =\(data.category!)"
-        productPrice.text = "\(data.price!)$"
-        imageView.sd_setImage(with: URL(string: data.image ?? "boş"))
+    func configure(data: Product? = nil, id: Int? = nil) {
+        if let productID = id {
+            productDetailService.getProductsDetail(id: productID) { product, error in
+                if let error {
+                    fatalError()
+                }
+                
+                if let product {
+                    self.updateUI(with: product)
+                }
+            }
+        }
+        
+        if let productData = data {
+            updateUI(with: productData)
+        }
         
     }
     
+    private func updateUI(with product: Product) {
+        self.product = product
+        DispatchQueue.main.async {
+            self.productTitle.text = product.title
+            self.productCategory.text = "CATEGORY =\(product.category!)"
+            self.productPrice.text = "\(product.price!)$"
+            self.imageView.sd_setImage(with: URL(string: product.image ?? "boş"))
+        }
+    }
     
     private func setupUI() {
         self.backgroundColor = .bg

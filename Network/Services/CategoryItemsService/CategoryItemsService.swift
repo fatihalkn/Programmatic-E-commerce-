@@ -20,6 +20,9 @@ class CategoryItemsService {
 }
 
 //MARK: - CategoryItemsServiceProtocol
+
+
+
 extension CategoryItemsService: CategoryItemsServiceProtocol {
     func getAllCategoryProducts(completion: @escaping (([Product], Error?) -> ())) {
         NetworkManager.shared.request(type: [Product].self, url: NetworkHelper.shared.requestAllProducts(), method: .get) { response in

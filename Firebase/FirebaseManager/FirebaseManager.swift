@@ -105,17 +105,17 @@ extension FirebaseManager {
             case .success(let userDocument):
                 var favoriteProduct = userDocument.userFovoriteProducts
                 if willAdd {
-                    if favoriteProduct.contains(where: {$0.title == product.title}) {
+                    if favoriteProduct.contains(where: {$0 == product.id}) {
                         return
                     }
-                    favoriteProduct.append(product)
+                    favoriteProduct.append(product.id ?? 0)
                 } else {
-                    if let indexToDelete = favoriteProduct.firstIndex(where: {$0.title == product.title }) {
+                    if let indexToDelete = favoriteProduct.firstIndex(where: {$0 == product.id }) {
                         favoriteProduct.remove(at: indexToDelete)
                     }
                 }
                 
-                let willUpdateFields = self.converProductArrayToDictionary(productArray: favoriteProduct)
+                let willUpdateFields = favoriteProduct
                 let userDocumentRef = Firestore.firestore().collection("Users").document(userID)
                 userDocumentRef.updateData(["userFovoriteProducts": willUpdateFields]) { error in
                     if let error {
@@ -158,15 +158,7 @@ extension FirebaseManager {
         }
     }
     
-    func converProductArrayToDictionary(productArray: [Product]) -> [[String: String]] {
-        let dictionaryArray = productArray.map {[
-            "title" : $0.title ?? "",
-            
-        ]}
-        return dictionaryArray
-        
-    }
-    
+  
     
     
     func checkIsProductsFavorite(produtcs:Product?, completion: @escaping ((_ isFavorite: Bool)-> Void)) {
@@ -174,7 +166,7 @@ extension FirebaseManager {
             switch result {
             case .success(let userDocumentData):
                 let favoriteProducts = userDocumentData.userFovoriteProducts
-                if favoriteProducts.contains(where: {$0.title == produtcs?.title }) {
+                if favoriteProducts.contains(where: {$0 == produtcs?.id }) {
                     completion(true)
                 } else {
                     completion(false)
