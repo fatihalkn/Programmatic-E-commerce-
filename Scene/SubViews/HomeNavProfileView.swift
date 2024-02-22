@@ -6,13 +6,24 @@
 //
 
 import UIKit
+import Firebase
+import FirebaseFirestore
+import FirebaseAuth
+import FirebaseDatabase
+import FirebaseStorage
+import SDWebImage
 
 final class HomeNavProfileView: UIView {
+    
+    static let shared = HomeNavProfileView()
+    
+    let db  = Firestore.firestore()
+    var currentUser: User?
     
     //MARK: - Creating UI Elements
     private lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.backgroundColor = .red
         return imageView
@@ -63,6 +74,53 @@ final class HomeNavProfileView: UIView {
         super.layoutSubviews()
         profileImageView.layer.cornerRadius = profileImageView.frame.height / 2
         profileImageView.layer.masksToBounds = true
+    }
+    
+    func updateTextField() {
+        titleLabel.text = currentUser?.email
+        
+        if let uid = currentUser?.uid {
+            let userRef = db.collection("Users").document(uid)
+            userRef.getDocument { document, error in
+                if let document = document, document.exists {
+                    let userName = document["userName"] as? String
+                    self.titleLabel.text = userName
+                } else {
+                    print(error?.localizedDescription ?? "Kullanıocı asfdaşskndfhal")
+                }
+            }
+        }
+    }
+    
+    func getUserInfo() {
+        if let user = Auth.auth().currentUser {
+            currentUser = user
+            updateTextField()
+        }
+        getUserPhoto()
+    }
+    
+    func getUserPhoto() {
+        if let uid = currentUser?.uid {
+            let storege = Storage.storage()
+            let storegeRef = storege.reference().child("Image/\(uid)")
+            storegeRef.listAll { result , error in
+                guard let ref = result?.items.first else { return }
+                if let error = error {
+                    print(error.localizedDescription)
+                } else {
+                    ref.downloadURL { url, error in
+                        if let error = error {
+                            print(error.localizedDescription)
+                        } else if let imageURL = url {
+                            self.profileImageView.sd_setImage(with: imageURL,completed: nil)
+                            
+                        
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

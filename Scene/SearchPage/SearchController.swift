@@ -44,7 +44,6 @@ class SearchController: UIViewController {
         textField.backgroundColor = .white
         textField.font = .systemFont(ofSize: 15, weight: .light)
         textField.translatesAutoresizingMaskIntoConstraints = false
-        
         return textField
     }()
     
@@ -81,10 +80,7 @@ class SearchController: UIViewController {
             }
         }
     }
-    
-   
-    
-    
+ 
     func setupRegister() {
         searchCollectionView.register(SearchPageCustomCell.self, forCellWithReuseIdentifier: SearchPageCustomCell.identifier)
     }
@@ -122,11 +118,7 @@ extension SearchController: UICollectionViewDelegate, UICollectionViewDataSource
         detailVc.productID = selecetedProduct
         navigationController?.pushViewController(detailVc, animated: true)
     }
-    
-    
 }
-
-
 
 //MARK: - TextField Delegate
 extension SearchController: UITextFieldDelegate {
@@ -143,9 +135,7 @@ extension SearchController: UITextFieldDelegate {
         searchCollectionView.reloadData()
         return true
     }
-    
 }
-
 
 //MARK: - Configure Constrains
 extension SearchController {

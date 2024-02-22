@@ -130,7 +130,8 @@ class LoginController: UIViewController {
                 } else {
                     self.showSucceed(text: "Başarıyla oturum açıldı", interaction: false, delay: 1)
                     let vc = HomeController()
-                    self.navigationController?.pushViewController(vc, animated: true)
+                    vc.modalPresentationStyle = .fullScreen
+                    self.present(vc, animated: true)
                 }
             }
         }

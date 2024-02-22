@@ -15,6 +15,20 @@ class FavoriteController: UIViewController {
     var favoriteProducts: [Int] = []
     var productDetailService: ProductDetailServiceProtocol = ProductDetailService()
     var products: [Product] = []
+    var categoryCollectionViewCategories: [Category] = [.electronics, .jewelery, .womenSClothing, .menSClothing]
+   
+    
+    private let categoryCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumInteritemSpacing = 10
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .white
+        return collectionView
+    }()
+    
+    
     private let favoriteCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -25,7 +39,6 @@ class FavoriteController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = .white
         collectionView.contentInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-        
         return collectionView
     }()
     
@@ -46,10 +59,8 @@ class FavoriteController: UIViewController {
         textField.backgroundColor = .white
         textField.font = .systemFont(ofSize: 15, weight: .light)
         textField.translatesAutoresizingMaskIntoConstraints = false
-        
         return textField
     }()
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,6 +69,7 @@ class FavoriteController: UIViewController {
         registerSetup()
         favoritTextField()
         favoriCollectionView()
+        categoryCollectionViewConstrain()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -75,13 +87,14 @@ class FavoriteController: UIViewController {
                     self.favoriteCollectionView.reloadData()
                 }
             case .failure(let failure):
-                break
+                print(failure.localizedDescription)
             }
         }
     }
     
     func registerSetup() {
         favoriteCollectionView.register(FavoritePageCustomCell.self, forCellWithReuseIdentifier: FavoritePageCustomCell.identifier)
+        categoryCollectionView.register(CategoryCollectionCell.self, forCellWithReuseIdentifier: CategoryCollectionCell.identifier)
         
     }
     
@@ -89,29 +102,83 @@ class FavoriteController: UIViewController {
         favoriteCollectionView.delegate = self
         favoriteCollectionView.dataSource = self
         favoriteTextField.delegate = self
+        categoryCollectionView.dataSource = self
+        categoryCollectionView.delegate = self
     }
-    
 }
 
 //MARK: - Configure CollectionView
-
 extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-       return favoriteProducts.count
+        switch collectionView {
+        case favoriteCollectionView:
+            return favoriteProducts.count
+        case categoryCollectionView:
+            return categoryCollectionViewCategories.count
+
+        default:
+            return 0
+        }
+        
+    
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = favoriteCollectionView.dequeueReusableCell(withReuseIdentifier: FavoritePageCustomCell.identifier, for: indexPath) as! FavoritePageCustomCell
-        let product = favoriteProducts[indexPath.item]
-        cell.configure(id: product)
-        cell.delegate = self
-        return cell
-    }
+        switch collectionView {
+        case favoriteCollectionView:
+            let cell = favoriteCollectionView.dequeueReusableCell(withReuseIdentifier: FavoritePageCustomCell.identifier, for: indexPath) as! FavoritePageCustomCell
+            let product = products[indexPath.item].id ?? 0
+            cell.configure(id: product)
+            cell.delegate = self
+            return cell
+            
+        case categoryCollectionView:
+            let cell = categoryCollectionView.dequeueReusableCell(withReuseIdentifier: CategoryCollectionCell.identifier, for: indexPath) as! CategoryCollectionCell
+            cell.configure(data: categoryCollectionViewCategories[indexPath.item])
+            return cell
+            
+        default:
+            return .init()
+        }
+        
+        }
+       
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let cellWidth: CGFloat = collectionView.frame.width - 70
-        let cellHight: CGFloat = 180
-        return(.init(width: cellWidth, height: cellHight))
+        switch collectionView {
+        case favoriteCollectionView:
+            let cellWidth: CGFloat = collectionView.frame.width - 70
+            let cellHight: CGFloat = 180
+            return(.init(width: cellWidth, height: cellHight))
+        case categoryCollectionView:
+            let cellWidth: CGFloat = collectionView.frame.width / 3
+            let cellHeight: CGFloat = 60
+            return(.init(width: cellWidth, height: cellHeight))
+        
+        default:
+            return .init()
+        }
+        
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        switch collectionView {
+        case favoriteCollectionView:
+            let selectedID = favoriteProducts[indexPath.item]
+                let productDetail = ProductsDetail()
+                productDetail.productID = selectedID
+                navigationController?.pushViewController(productDetail, animated: true)
+            
+        case categoryCollectionView:
+            let selectedCategory = categoryCollectionViewCategories[indexPath.item]
+            let filteredPorducts = products.filter { $0.category == selectedCategory }.map { $0.id! }
+            self.favoriteProducts = filteredPorducts
+            favoriteCollectionView.reloadData()
+               
+        default:
+            break
+        }
+        
     }
 }
 
@@ -119,13 +186,12 @@ extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelega
 extension FavoriteController: SwipeCollectionViewCellDelegate {
     func collectionView(_ collectionView: UICollectionView, editActionsForItemAt indexPath: IndexPath, for orientation: SwipeCellKit.SwipeActionsOrientation) -> [SwipeCellKit.SwipeAction]? {
         guard orientation == .right else { return nil }
-        
-        let deleteAction = SwipeAction(style: .default, title: "DELETE") { action, indexPath in
+        let deleteAction = SwipeAction(style: .destructive, title: "DELETE") { action, indexPath in
             guard let userID = FirebaseManager.shared.userID else  { return }
-           
+            self.showSucceed(text: "", interaction: false, delay: 1)
             self.productDetailService.getProductsDetail(id: self.favoriteProducts[indexPath.item]) { product, error in
                 if let error = error {
-                    fatalError()
+                    print(error.localizedDescription)
                     
                 } else {
                     
@@ -136,6 +202,7 @@ extension FavoriteController: SwipeCollectionViewCellDelegate {
                             DispatchQueue.main.async {
                                 self.favoriteCollectionView.deleteItems(at: [indexPath])
                             }
+
                         case .failure(let failure):
                             print(failure.localizedDescription)
                         }
@@ -145,7 +212,7 @@ extension FavoriteController: SwipeCollectionViewCellDelegate {
             }
             
         }
-        
+        deleteAction.backgroundColor = .main
         deleteAction.image = UIImage(named: "bin")
         return [deleteAction]
     }
@@ -157,19 +224,15 @@ extension FavoriteController: SwipeCollectionViewCellDelegate {
             
             return options
         }
-    
 }
 
 //MARK: - TextField Delegate
 extension FavoriteController: UITextFieldDelegate {
     
-    
-    
 }
 
 
 //MARK: - Configure Constrains
-
 extension FavoriteController {
     
     func favoriCollectionView() {
@@ -190,7 +253,15 @@ extension FavoriteController {
             favoriteTextField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor,constant: -20),
             favoriteTextField.heightAnchor.constraint(equalToConstant: 40)
         ])
-        
     }
     
+    func categoryCollectionViewConstrain() {
+        view.addSubview(categoryCollectionView)
+        NSLayoutConstraint.activate([
+            categoryCollectionView.topAnchor.constraint(equalTo: favoriteTextField.bottomAnchor),
+            categoryCollectionView.leadingAnchor.constraint(equalTo: favoriteCollectionView.leadingAnchor),
+            categoryCollectionView.trailingAnchor.constraint(equalTo: favoriteCollectionView.trailingAnchor),
+            categoryCollectionView.heightAnchor.constraint(equalToConstant: 60)
+        ])
+    }
 }

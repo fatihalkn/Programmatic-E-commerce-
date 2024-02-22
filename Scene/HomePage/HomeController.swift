@@ -6,6 +6,10 @@
 //
 
 import UIKit
+import Firebase
+import FirebaseAuth
+import FirebaseStorage
+import FirebaseFirestore
 
 enum HomeCurrentSelectedButtonType {
     case home
@@ -78,6 +82,9 @@ class HomeController: UIViewController {
             }
         }
         
+        if let homeNavProfileView = navigationItem.leftBarButtonItems?.filter({ $0.customView is HomeNavProfileView }).first?.customView as? HomeNavProfileView {
+            homeNavProfileView.getUserInfo()
+        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -99,6 +106,7 @@ class HomeController: UIViewController {
         }
     }
     
+
     func fetchAllCategories() {
         switch currentSelectedButtonType {
         case .home:

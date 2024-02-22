@@ -8,6 +8,7 @@ import UIKit
 
 class CustomTextFields: UITextField {
     
+    
     //MARK: - Properties
     private var placeholderInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     
@@ -20,7 +21,7 @@ class CustomTextFields: UITextField {
         fatalError("init(coder:) has not been implemented")
     }
     
-    convenience init(isSecureText: Bool, placeHolder: String, leftImage: UIImage,userName:String?, password:String?) {
+    convenience init(isSecureText: Bool, placeHolder: String, leftImage: UIImage, userName:String?, password:String?) {
         self.init(frame: .zero)
         set(isSecureText: isSecureText, placeHolder: placeHolder, leftImage: leftImage,text: userName,password: password)
     }
@@ -61,5 +62,6 @@ class CustomTextFields: UITextField {
         leftImageView.contentMode = .scaleAspectFit
         leftImageView.image = leftImage
         leftView = leftImageView
+        translatesAutoresizingMaskIntoConstraints = false
     }
 }
