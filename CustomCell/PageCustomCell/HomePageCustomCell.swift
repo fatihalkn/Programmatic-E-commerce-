@@ -109,6 +109,7 @@ class HomePageCustomCell: UICollectionViewCell {
     
     func handleFavoriteButton() {
         guard let userID = FirebaseManager.shared.userID, let product  else {
+            
             setButtonColor(isFavorite: isFavorite)
             return
         }

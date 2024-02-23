@@ -12,9 +12,9 @@ import SwipeCellKit
 
 class FavoriteController: UIViewController {
 
-    var favoriteProducts: [Int] = []
     var productDetailService: ProductDetailServiceProtocol = ProductDetailService()
     var products: [Product] = []
+    var originalProducts: [Product] = []
     var categoryCollectionViewCategories: [Category] = [.electronics, .jewelery, .womenSClothing, .menSClothing]
    
     
@@ -81,11 +81,42 @@ class FavoriteController: UIViewController {
         FirebaseManager.shared.fetchUserDocument { result in
             switch result {
             case .success(let userDocument):
-                let savedProducts = userDocument.userFovoriteProducts
-                self.favoriteProducts = savedProducts
-                DispatchQueue.main.async {
-                    self.favoriteCollectionView.reloadData()
+                
+                //MARK: - ANLAMADIM AKŞAM BAK
+                let savedProductIDs = userDocument.userFovoriteProducts
+                let dispatchGroup = DispatchGroup()
+                let dispatchQueue = DispatchQueue(label: "fecthSavedProducts", attributes: .concurrent)
+                
+                savedProductIDs.forEach { productID in
+                    dispatchGroup.enter()
+                    dispatchQueue.async {
+                        self.productDetailService.getProductsDetail(id: productID) { product, error in
+                            if let _ = error {
+                                
+                            }
+                            if let product {
+                                if !self.originalProducts.contains(where: { $0.id == product.id }) {
+                                    if self.products.contains(where: { $0.category == product.category }) {
+                                        self.products.append(product)
+                                    }
+                                    
+                                    self.originalProducts.append(product)
+                                }
+                                
+                            }
+                            
+                            dispatchGroup.leave()
+                        }
+                    }
                 }
+                
+                dispatchGroup.notify(queue: dispatchQueue) {
+                    DispatchQueue.main.async {
+                        self.favoriteCollectionView.reloadData()
+                    }
+                }
+                
+                
             case .failure(let failure):
                 print(failure.localizedDescription)
             }
@@ -112,7 +143,7 @@ extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelega
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch collectionView {
         case favoriteCollectionView:
-            return favoriteProducts.count
+            return products.count
         case categoryCollectionView:
             return categoryCollectionViewCategories.count
 
@@ -127,8 +158,8 @@ extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelega
         switch collectionView {
         case favoriteCollectionView:
             let cell = favoriteCollectionView.dequeueReusableCell(withReuseIdentifier: FavoritePageCustomCell.identifier, for: indexPath) as! FavoritePageCustomCell
-            let product = products[indexPath.item].id ?? 0
-            cell.configure(id: product)
+            let product = products[indexPath.item]
+            cell.configure(product: product)
             cell.delegate = self
             return cell
             
@@ -164,16 +195,18 @@ extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelega
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         switch collectionView {
         case favoriteCollectionView:
-            let selectedID = favoriteProducts[indexPath.item]
+            let selectedID = products[indexPath.item].id
                 let productDetail = ProductsDetail()
                 productDetail.productID = selectedID
                 navigationController?.pushViewController(productDetail, animated: true)
             
         case categoryCollectionView:
             let selectedCategory = categoryCollectionViewCategories[indexPath.item]
-            let filteredPorducts = products.filter { $0.category == selectedCategory }.map { $0.id! }
-            self.favoriteProducts = filteredPorducts
-            favoriteCollectionView.reloadData()
+            let filteredPorducts = originalProducts.filter { $0.category == selectedCategory }
+            self.products = filteredPorducts
+            DispatchQueue.main.async {
+                self.favoriteCollectionView.reloadData()
+            }
                
         default:
             break
@@ -189,7 +222,7 @@ extension FavoriteController: SwipeCollectionViewCellDelegate {
         let deleteAction = SwipeAction(style: .destructive, title: "DELETE") { action, indexPath in
             guard let userID = FirebaseManager.shared.userID else  { return }
             self.showSucceed(text: "", interaction: false, delay: 1)
-            self.productDetailService.getProductsDetail(id: self.favoriteProducts[indexPath.item]) { product, error in
+            self.productDetailService.getProductsDetail(id: self.products[indexPath.item].id ?? 0) { product, error in
                 if let error = error {
                     print(error.localizedDescription)
                     
@@ -198,7 +231,7 @@ extension FavoriteController: SwipeCollectionViewCellDelegate {
                     FirebaseManager.shared.updateFavoriteProduct(userID: userID, product: product!, willAdd: false) { result in
                         switch result {
                         case .success(_):
-                            self.favoriteProducts.remove(at: indexPath.item)
+                            self.products.remove(at: indexPath.item)
                             DispatchQueue.main.async {
                                 self.favoriteCollectionView.deleteItems(at: [indexPath])
                             }

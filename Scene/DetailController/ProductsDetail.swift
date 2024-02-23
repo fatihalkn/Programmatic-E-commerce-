@@ -7,11 +7,13 @@
 
 import Foundation
 import UIKit
+import BLTNBoard
 
 class ProductsDetail: UIViewController {
     
     var productID: Int?
     var productTitle: String?
+    var prodcut: Product?
     
     private let detailService : ProductDetailServiceProtocol = ProductDetailService()
     
@@ -102,13 +104,47 @@ class ProductsDetail: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-   
-  
     
+    private lazy var boardManager: BLTNItemManager = {
+        let item = BLTNPageItem(title: "Sepet İşlemleri")
+        item.image = .basket
+        item.appearance.actionButtonBorderColor = .black
+        item.appearance.actionButtonColor = .main
+        item.actionButtonTitle = "sepete ekle"
+        item.next = makeRootItem()
+        item.actionHandler = {  _ in
+            self.updateBasketArray()
+            item.manager?.displayNextItem()
+        }
+        
+        item.alternativeHandler = { _  in}
+     
+       return BLTNItemManager(rootItem: item)
+    }()
+    
+    func makeRootItem() -> BLTNItem {
+        let rootPage = BLTNPageItem(title: "Sepete başarıyla eklendi")
+        rootPage.image = .okey
+        rootPage.actionButtonTitle = "Sepete git"
+        rootPage.appearance.actionButtonColor = .main
+        rootPage.actionHandler = { _ in
+           let vc = BasketController()
+            self.navigationController?.pushViewController(vc, animated: true)
+            
+            
+            
+        }
+        
+        return rootPage
+    }
+    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         fetchProductDetail()
+        targetAddCardButton()
+        
     }
     
     override func viewDidLayoutSubviews() {
@@ -116,6 +152,47 @@ class ProductsDetail: UIViewController {
         radiusButtons()
     }
     
+    
+    func updateBasketArray() {
+        guard let productID else { return }
+        detailService.getProductsDetail(id: productID) { product, error in
+            if let error = error {
+                return
+            }
+            if let product {
+                guard let userID = FirebaseManager.shared.userID else { return }
+                 let product = product
+                FirebaseManager.shared.updateBasketProduct(userID: userID, product: product, willAdd: true) { result in
+                    switch result {
+                    case .success(let success):
+                        print("başarışı")
+                    case .failure(let failure):
+                        print("afsasfa")
+                    }
+                }
+
+            }
+           
+        }
+        
+        
+    }
+    
+   
+
+    
+    
+    func targetAddCardButton() {
+        addToCardButton.addTarget(self, action: #selector(clickedAddCardButton), for: .touchUpInside)
+        
+    }
+    
+    @objc func clickedAddCardButton() {
+        boardManager.showBulletin(above: self)
+        boardManager.backgroundViewStyle = .blurredLight
+        
+    
+    }
    
     func configureUI(product: Product) {
         DispatchQueue.main.async {
@@ -164,6 +241,7 @@ class ProductsDetail: UIViewController {
             }
             if let product {
                 self.configureUI(product: product)
+                
 
             }
            

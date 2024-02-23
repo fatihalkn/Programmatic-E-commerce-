@@ -76,24 +76,17 @@ class FavoritePageCustomCell: SwipeCollectionViewCell {
     }
     
     
-    func configure(id:Int) {
-        let productID = id
-        productDetailService.getProductsDetail(id: productID) { product, error in
-            if let error = error {
-                print("ERROR: \(error.localizedDescription)")
-            }
-            if let product {
-                self.products = product
-                DispatchQueue.main.async {
-                    self.prodoctTitle.text = product.title
-                    self.productPrice.text = "\(product.price!)$"
-                    self.productCategory.text = "CATEGORY = \(product.category!)"
-                    self.imageView.sd_setImage(with: URL(string: product.image ?? "boş"))
-                }
-                
-                
-            }
+    func configure(product: Product) {
+        
+        self.products = product
+        DispatchQueue.main.async {
+            self.prodoctTitle.text = product.title
+            self.productPrice.text = "\(product.price!)$"
+            self.productCategory.text = "CATEGORY = \(product.category!)"
+            self.imageView.sd_setImage(with: URL(string: product.image ?? "boş"))
         }
+        
+        
         
     }
 }

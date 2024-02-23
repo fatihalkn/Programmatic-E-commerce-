@@ -20,10 +20,11 @@ class TabBarController: UITabBarController {
     
     private func setupTabs() {
         let home = self.createNav(title: "Home", image: .home, vc: HomeController())
+        let basket = self.createNav(title: "Basket", image: .basket, vc: BasketController())
         let profile = self.createNav(title: "Profile", image: .person, vc: UserProfileController())
-        let favorite = self.createNav(title: "Favorite", image: .basket, vc: FavoriteController())
+        let favorite = self.createNav(title: "Favorite", image: .favorite, vc: FavoriteController())
         let search = self.createNav(title: "Search", image: .search, vc: SearchController())
-        self.setViewControllers([home, profile, favorite, search], animated: true)
+        self.setViewControllers([home, favorite, search, basket, profile], animated: true)
     }
     
     private func createNav(title: String, image: UIImage, vc: UIViewController) -> UINavigationController {

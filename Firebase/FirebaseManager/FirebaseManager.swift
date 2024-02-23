@@ -64,7 +64,8 @@ extension FirebaseManager {
             "userPassword": userDocumentModel.userPassword,
             "userID": userDocumentModel.userID,
             "userFovoriteProducts": userDocumentModel.userFovoriteProducts,
-            "userTappedProducts": userDocumentModel.userTappedProducts
+            "userTappedProducts": userDocumentModel.userTappedProducts,
+            "userBasketeProducts": userDocumentModel.userBasketeProducts
         ]
         db.collection("Users").document(userDocumentModel.userID ).setData(fields) { error in
             
@@ -128,6 +129,38 @@ extension FirebaseManager {
                 completion(.failure(failure))
             }
         }
+    }
+    
+    
+    func updateBasketProduct(userID: String, product: Product, willAdd: Bool,completion: @escaping ((Result<Void, Error>) -> Void)) {
+        fetchUserDocument { result in
+            switch result {
+            case .success(let userDocument):
+                var basketProduct = userDocument.userBasketeProducts
+                if willAdd {
+                    if basketProduct.contains(where: {$0 == product.id }) {
+                        return
+                    }
+                    basketProduct.append(product.id ?? 0)
+                } else {
+                    if let indexToDelete = basketProduct.firstIndex(where: {$0 == product.id }) {
+                        basketProduct.remove(at: indexToDelete)
+                    }
+                }
+                
+                let willUpdateFields = basketProduct
+                let userDocumentRef = Firestore.firestore().collection("Users").document(userID)
+                userDocumentRef.updateData(["userBasketeProducts": willUpdateFields]) { error  in
+                    if let error {
+                        completion(.failure(error))
+                    }
+                    completion(.success(()))
+                }
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
+        
     }
     
     func fetchUserDocument(completion: @escaping ((Result<FirebaseUserDocumentModel, Error>) -> Void))  {

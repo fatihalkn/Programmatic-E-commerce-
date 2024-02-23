@@ -80,6 +80,7 @@ class RegisterController: UIViewController {
                                                                       userEmail: email,
                                                                       userPassword: password,
                                                                       userFovoriteProducts: [],
+                                                                      userBasketeProducts: [],
                                                                       userTappedProducts: [])
                     
                     FirebaseManager.shared.creatUserDocument(userDocumentModel: userDocumentModel) { result in

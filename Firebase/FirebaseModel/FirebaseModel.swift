@@ -13,6 +13,7 @@ struct FirebaseUserDocumentModel: Codable {
     var userEmail: String
     var userPassword: String
     var userFovoriteProducts: [Int]
+    var userBasketeProducts: [Int]
     var userTappedProducts: [String]
 }
 
