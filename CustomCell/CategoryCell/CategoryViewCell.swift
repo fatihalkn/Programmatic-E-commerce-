@@ -38,7 +38,7 @@ class CategoryViewCell: UICollectionViewCell {
     //MARK: - Life-Cycle
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.backgroundColor = .bg
+        self.backgroundColor = .white
         setupUI()
         configureCategoryTitler()
         configureİmageView()

@@ -87,8 +87,11 @@ class LoginController: UIViewController {
             switch result {
             case .success(_):
                 self.showSucceed(text: "Giriş işlemi Başarılı", interaction: false, delay: nil)
-                let vc = HomeController()
-                self.navigationController?.pushViewController(vc, animated: true)
+                let vc = TabBarController()
+                vc.modalPresentationStyle = .fullScreen
+                self.present(vc, animated: true)
+                
+              
             case .failure(let failure):
                 self.showError(text: "Giriş işlemi başarısız\(failure.localizedDescription)", image: nil, interaction: false, delay: 2)
             }

@@ -78,6 +78,7 @@ class CustomButtons: UIButton {
         }
         
         translatesAutoresizingMaskIntoConstraints = false  
+        
     }
     
     

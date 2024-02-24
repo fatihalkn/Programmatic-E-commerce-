@@ -94,7 +94,7 @@ class FavoritePageCustomCell: SwipeCollectionViewCell {
 //MARK: - Configure UI Constains
 extension FavoritePageCustomCell {
     func setupUI() {
-        self.backgroundColor = .bg
+        self.backgroundColor = .white
         self.layer.cornerRadius = 16
         self.addSubview(imageView)
         self.addSubview(prodoctTitle)

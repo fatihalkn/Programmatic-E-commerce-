@@ -37,7 +37,7 @@ class FavoriteController: UIViewController {
         layout.sectionInset = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .white
+        collectionView.backgroundColor = .bg
         collectionView.contentInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         return collectionView
     }()
@@ -64,7 +64,7 @@ class FavoriteController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .bg
         delegateSetup()
         registerSetup()
         favoritTextField()
@@ -245,18 +245,9 @@ extension FavoriteController: SwipeCollectionViewCellDelegate {
             }
             
         }
-        deleteAction.backgroundColor = .main
         deleteAction.image = UIImage(named: "bin")
         return [deleteAction]
     }
-    func collectionView(_ collectionView: UICollectionView, editActionsOptionsForItemAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
-            var options = SwipeOptions()
-            options.expansionStyle = .fill
-            options.transitionStyle = .reveal
-            options.backgroundColor = .bg
-            
-            return options
-        }
 }
 
 //MARK: - TextField Delegate

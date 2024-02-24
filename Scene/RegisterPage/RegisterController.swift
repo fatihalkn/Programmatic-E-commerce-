@@ -41,7 +41,7 @@ class RegisterController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        addCreatUserTarget()
+        buttonTargets()
         setupUI()
     }
     
@@ -50,9 +50,16 @@ class RegisterController: UIViewController {
         radiusUI()
     }
     
-    func addCreatUserTarget() {
+    func buttonTargets() {
         registerButton.addTarget(self, action: #selector(creatButtonClicked), for: .touchUpInside)
+        loginButton.addTarget(self, action: #selector(loginButtonClicked), for: .touchUpInside)
     }
+    
+    @objc func loginButtonClicked() {
+        let vc = LoginController()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
     
     @objc func creatButtonClicked() {
         guard let userName = userNameTextField.text, !userName.isEmpty else {
@@ -87,7 +94,8 @@ class RegisterController: UIViewController {
                         switch result {
                         case .success(_):
                             self.showSucceed(text: "Kayıt işlemi Başarılı", interaction: false, delay: nil)
-                            //-push
+                            let vc = LoginController()
+                            self.navigationController?.pushViewController(vc, animated: true)
                         case .failure(_):
                             self.showError(text: "Kayıt İşlemi Tamamlandı, Ama User ID basei oluşturulmadı", image: nil, interaction: false, delay: nil)
                             

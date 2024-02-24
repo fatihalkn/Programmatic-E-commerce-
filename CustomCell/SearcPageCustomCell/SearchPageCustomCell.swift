@@ -104,7 +104,7 @@ extension SearchPageCustomCell {
     }
     
     func setupUI() {
-        self.backgroundColor = .bg
+        self.backgroundColor = .white
         self.layer.cornerRadius = 16
         
         addSubview(imageView)

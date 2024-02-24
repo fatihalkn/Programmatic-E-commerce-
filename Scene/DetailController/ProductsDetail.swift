@@ -125,15 +125,8 @@ class ProductsDetail: UIViewController {
     func makeRootItem() -> BLTNItem {
         let rootPage = BLTNPageItem(title: "Sepete başarıyla eklendi")
         rootPage.image = .okey
-        rootPage.actionButtonTitle = "Sepete git"
         rootPage.appearance.actionButtonColor = .main
-        rootPage.actionHandler = { _ in
-           let vc = BasketController()
-            self.navigationController?.pushViewController(vc, animated: true)
-            
-            
-            
-        }
+        rootPage.actionHandler = { _ in }
         
         return rootPage
     }

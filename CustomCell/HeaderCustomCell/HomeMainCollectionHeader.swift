@@ -14,6 +14,9 @@ import UIKit
 class HomeMainCollectionHeader: UICollectionReusableView {
     static let identifier = "HomeMainCollectionHeader"
     
+    let categoryItemsService: CategoryItemsServiceProtocol = CategoryItemsService()
+    var Headerproduct: [Product] = []
+    
     var delegate: HeaderDelegate?
     
     private let headerCollectionView: UICollectionView = {
@@ -55,6 +58,7 @@ class HomeMainCollectionHeader: UICollectionReusableView {
         super.init(frame: frame)
         setupRegister()
         addTargerSeeAllButton()
+        fetchAllProducts()
     }
     
     override func layoutSubviews() {
@@ -65,6 +69,19 @@ class HomeMainCollectionHeader: UICollectionReusableView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func fetchAllProducts() {
+        categoryItemsService.getAllCategoryProducts { product, error  in
+            if let error = error {
+                
+            } else {
+                self.Headerproduct = product
+                DispatchQueue.main.async {
+                    self.headerCollectionView.reloadData()
+                }
+            }
+        }
     }
     
     
@@ -105,11 +122,12 @@ class HomeMainCollectionHeader: UICollectionReusableView {
 
 extension HomeMainCollectionHeader: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        return Headerproduct.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = headerCollectionView.dequeueReusableCell(withReuseIdentifier: HeaderCollectionViewCell.identifier, for: indexPath)
+        let cell = headerCollectionView.dequeueReusableCell(withReuseIdentifier: HeaderCollectionViewCell.identifier, for: indexPath) as! HeaderCollectionViewCell
+        cell.configure(data: Headerproduct[indexPath.item])
         return cell
     }
     

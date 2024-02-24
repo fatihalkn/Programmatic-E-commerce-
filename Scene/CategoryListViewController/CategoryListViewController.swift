@@ -143,7 +143,7 @@ extension CategoryListViewController: UICollectionViewDelegate, UICollectionView
 extension CategoryListViewController {
     
     func configureCollectionView() {
-        view.backgroundColor = .white
+        view.backgroundColor = .bg
         view.addSubview(listCollectionView)
         listCollectionView.translatesAutoresizingMaskIntoConstraints = false
         

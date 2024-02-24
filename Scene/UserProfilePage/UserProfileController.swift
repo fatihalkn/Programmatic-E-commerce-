@@ -81,8 +81,10 @@ class UserProfileController: UIViewController  {
         do {
             try Auth.auth().signOut()
             let loginVC = LoginController()
-            loginVC.modalPresentationStyle = .fullScreen
-            present(loginVC, animated: true)
+            let nav = UINavigationController(rootViewController: loginVC)
+            UIApplication.shared.windows.first?.rootViewController = nav // Root view controller'ı değiştir
+
+           
             
         } catch {
             print(error.localizedDescription)

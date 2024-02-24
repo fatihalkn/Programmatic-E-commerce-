@@ -7,9 +7,10 @@
 
 import Foundation
 import UIKit
+import SwipeCellKit
 
 class BasketController : UIViewController {
-    
+    var productDetailService: ProductDetailServiceProtocol = ProductDetailService()
     var basketProducts: [Int] = []
     
     
@@ -19,7 +20,7 @@ class BasketController : UIViewController {
         layout.minimumLineSpacing = 20
         layout.minimumInteritemSpacing = 20
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .clear
+        collectionView.backgroundColor = .bg
         collectionView.contentInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
@@ -75,6 +76,7 @@ extension BasketController: UICollectionViewDelegate, UICollectionViewDataSource
         let cell = basketCollectionView.dequeueReusableCell(withReuseIdentifier: BasketPageCell.identifier, for: indexPath) as! BasketPageCell
         let basketProdcuts = basketProducts[indexPath.item]
         cell.configure(id: basketProdcuts)
+        cell.delegate = self
         return cell
     }
     
@@ -85,6 +87,42 @@ extension BasketController: UICollectionViewDelegate, UICollectionViewDataSource
     }
     
     
+}
+
+
+extension BasketController: SwipeCollectionViewCellDelegate {
+    func collectionView(_ collectionView: UICollectionView, editActionsForItemAt indexPath: IndexPath, for orientation: SwipeCellKit.SwipeActionsOrientation) -> [SwipeCellKit.SwipeAction]? {
+        guard orientation == .right else { return nil }
+        let deleteAction = SwipeAction(style: .destructive, title: "DELETE") { action, indexPath in
+            guard let userID = FirebaseManager.shared.userID else  { return }
+            self.showSucceed(text: "", interaction: false, delay: 1)
+            self.productDetailService.getProductsDetail(id: self.basketProducts[indexPath.item] ) { product, error in
+                if let error = error {
+                    print(error.localizedDescription)
+                    
+                } else {
+                    
+                    FirebaseManager.shared.updateBasketProduct(userID: userID, product: product!, willAdd: false) { result in
+                        switch result {
+                        case .success(_):
+                            self.basketProducts.remove(at: indexPath.item)
+                            DispatchQueue.main.async {
+                                self.basketCollectionView.deleteItems(at: [indexPath])
+                            }
+
+                        case .failure(let failure):
+                            print(failure.localizedDescription)
+                        }
+                    }
+                    
+                }
+            }
+            
+        }
+        deleteAction.image = UIImage(named: "bin")
+        return [deleteAction]
+    
+    }
 }
 
 

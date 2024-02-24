@@ -14,7 +14,6 @@ class CategoryCollectionCell: UICollectionViewCell {
     
     private let categoryLabel: UILabel = {
         let label = UILabel()
-        label.layer.borderWidth = 1
         label.textAlignment = .center
         label.textColor = .black
         label.font = .systemFont(ofSize: 10, weight: .medium)
@@ -26,7 +25,7 @@ class CategoryCollectionCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super .init(frame: frame)
-        self.backgroundColor = .white
+       
         setupUI()
         categoryLabelConstarin()
 
@@ -44,6 +43,7 @@ class CategoryCollectionCell: UICollectionViewCell {
     
     func setupUI() {
         self.addSubview(categoryLabel)
+        self.backgroundColor = .white
         
     }
     

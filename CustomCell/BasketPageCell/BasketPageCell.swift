@@ -6,8 +6,9 @@
 //
 
 import UIKit
+import SwipeCellKit
 
-class BasketPageCell: UICollectionViewCell {
+class BasketPageCell: SwipeCollectionViewCell {
     
     static let identifier = "BasketPageCell"
     let productDetailService: ProductDetailServiceProtocol = ProductDetailService()
@@ -38,7 +39,7 @@ class BasketPageCell: UICollectionViewCell {
     private let productPrice: UILabel = {
         let label = UILabel()
         label.text = "124124"
-        label.font = .systemFont(ofSize: 12, weight: .semibold)
+        label.font = .systemFont(ofSize: 20, weight: .semibold)
         label.textColor = .black
         label.textAlignment = .center
         label.numberOfLines = 2
@@ -60,6 +61,8 @@ class BasketPageCell: UICollectionViewCell {
     
     private let stepper: UIStepper = {
         let stepper = UIStepper()
+        stepper.maximumValue = 9
+        stepper.maximumValue = 0
         stepper.translatesAutoresizingMaskIntoConstraints = false
         return stepper
     }()
@@ -84,6 +87,9 @@ class BasketPageCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
+        stepper.minimumValue = 1
+        stepper.maximumValue = 9
+        stepper.stepValue = 1
     }
     
     
@@ -93,7 +99,8 @@ class BasketPageCell: UICollectionViewCell {
     }
     
     @objc func clickedStepper() {
-        stepperLabel.text = String(stepper.value)
+        let newValue = Int(stepper.value)
+        stepperLabel.text = String(newValue)
     }
     
     
@@ -128,56 +135,64 @@ class BasketPageCell: UICollectionViewCell {
 
 extension BasketPageCell {
     func setupUI() {
-        self.backgroundColor = .bg
+        self.backgroundColor = .white
         self.layer.cornerRadius = 16
         self.addSubview(imageView)
         self.addSubview(prodoctTitle)
         self.addSubview(productPrice)
         self.addSubview(stepper)
-        self.addSubview(stepperLabel) 
-
+        self.addSubview(stepperLabel)
+//
     }
     
     func imageViewConstrain() {
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leadingAnchor)
+            imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            imageView.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.5),
+            imageView.widthAnchor.constraint(equalTo: imageView.heightAnchor, multiplier: 1.2)
+            
         ])
     }
     
     func productTitleConstrain() {
         NSLayoutConstraint.activate([
             prodoctTitle.topAnchor.constraint(equalTo: imageView.topAnchor),
-            prodoctTitle.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor),
-            prodoctTitle.leadingAnchor.constraint(equalTo: imageView.leadingAnchor)
-        ])
-    }
-    
-    func productPriceConstrain() {
-        NSLayoutConstraint.activate([
-            productPrice.topAnchor.constraint(equalTo: stepperLabel.topAnchor),
-            productPrice.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor),
-            productPrice.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor)
+            prodoctTitle.leadingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            prodoctTitle.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor,constant: 20)
+            
+            
+            
             
         ])
     }
     
     func stepperConstrain() {
         NSLayoutConstraint.activate([
-            stepper.topAnchor.constraint(equalTo: prodoctTitle.bottomAnchor),
+            stepper.centerYAnchor.constraint(equalTo: self.centerYAnchor,constant: 20),
             stepper.leadingAnchor.constraint(equalTo: imageView.trailingAnchor),
-            stepper.bottomAnchor.constraint(equalTo: self.bottomAnchor)
             
+           
         ])
     }
     
+   
+    
     func stepperLabelConstrain() {
         NSLayoutConstraint.activate([
-            stepperLabel.topAnchor.constraint(equalTo: stepper.topAnchor),
-            stepperLabel.leadingAnchor.constraint(equalTo: stepper.trailingAnchor),
-            stepperLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            stepperLabel.centerYAnchor.constraint(equalTo: stepper.centerYAnchor),
+            stepperLabel.leadingAnchor.constraint(equalTo: stepper.trailingAnchor,constant: 10)
+            
         ])
         
+    }
+    
+    func productPriceConstrain() {
+        NSLayoutConstraint.activate([
+            productPrice.centerYAnchor.constraint(equalTo: stepperLabel.centerYAnchor,constant: 40),
+            productPrice.leadingAnchor.constraint(equalTo: stepper.trailingAnchor,constant: 40),
+            productPrice.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor)
+            
+        ])
     }
 }

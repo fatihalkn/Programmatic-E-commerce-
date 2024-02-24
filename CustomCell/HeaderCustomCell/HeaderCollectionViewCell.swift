@@ -9,12 +9,13 @@ import UIKit
 
 class HeaderCollectionViewCell: UICollectionViewCell {
     
-   
+    var product: Product?
     
     private lazy var mainImageView: UIImageView = {
        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
+        imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.clipsToBounds = true
         imageView.backgroundColor = .b
         return imageView
     }()
@@ -33,8 +34,8 @@ class HeaderCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.textAlignment = .center
         label.textColor = .black
-        label.font = .systemFont(ofSize: 18, weight: .semibold)
-        label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 15, weight: .bold)
+        label.numberOfLines = 4
         label.text = "%24 of Shopping Today on bag pruchases"
         label.translatesAutoresizingMaskIntoConstraints = false
         
@@ -67,6 +68,15 @@ class HeaderCollectionViewCell: UICollectionViewCell {
         mainImageView.layer.cornerRadius = mainImageView.frame.height / 2
         mainImageView.layer.masksToBounds = true
     }
+    
+    
+    func configure(data: Product) {
+        self.product = data
+        DispatchQueue.main.async {
+            self.titleLabel.text = "\(data.price!) $ !!!"
+            self.productsImageView.sd_setImage(with: URL(string: "\(data.image!)"))
+        }
+    }
    
 }
 
@@ -77,8 +87,7 @@ extension HeaderCollectionViewCell {
     
     private func setupUI() {
         self.layer.cornerRadius = 16
-        backgroundColor = .bg
-        
+        backgroundColor = .white
         addSubview(mainImageView)
         addSubview(productsImageView)
         addSubview(titleLabel)
@@ -103,7 +112,7 @@ extension HeaderCollectionViewCell {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: self.topAnchor),
             titleLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: productsImageView.leadingAnchor,constant: 10),
+            titleLabel.trailingAnchor.constraint(equalTo: productsImageView.leadingAnchor,constant: 50),
             titleLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor)
             
         ])
