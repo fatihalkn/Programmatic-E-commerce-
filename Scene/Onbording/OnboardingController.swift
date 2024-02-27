@@ -11,10 +11,11 @@ import UIKit
 class OnboardingController: UIViewController, OnboardingCellDelegate {
     
     
-    private var currentPage: Int = 0
-    
-    
-    
+    private var currentPage = 0 {
+        didSet {
+            updateContinueButtonTitle()
+        }
+    }
     
     struct images {
         let imageName: String
@@ -44,6 +45,7 @@ class OnboardingController: UIViewController, OnboardingCellDelegate {
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         pageControl.pageIndicatorTintColor = .bg
         pageControl.currentPageIndicatorTintColor = .main
+        pageControl.isUserInteractionEnabled = false
         return pageControl
     }()
     
@@ -88,10 +90,17 @@ class OnboardingController: UIViewController, OnboardingCellDelegate {
 
     }
     
+    private func updateContinueButtonTitle() {
+        if currentPage == data.count - 1 {
+            contiuneButton.setTitle("Get Started", for: .normal)
+        } else {
+            contiuneButton.setTitle("Continue", for: .normal)
+        }
+    }
+    
     private func handleOnboardingCompletion() {
         let vc = RegisterController()
-        vc.modalPresentationStyle = .fullScreen
-        self.present(vc, animated: true)
+        navigationController?.pushViewController(vc, animated: true)
         }
     
     func setupRadius() {
@@ -113,6 +122,16 @@ class OnboardingController: UIViewController, OnboardingCellDelegate {
         contiuneButton.addTarget(self, action: #selector(continueButtonTapped), for: .touchUpInside)
     }
 
+}
+
+
+//MARK: - PageController Configure
+extension OnboardingController {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        let width = scrollView.frame.width
+        currentPage = Int(scrollView.contentOffset.x / width)
+        pageController.currentPage = currentPage
+    }
 }
 
 //MARK: - CollectionView Configure

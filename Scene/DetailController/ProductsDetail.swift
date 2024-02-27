@@ -126,7 +126,8 @@ class ProductsDetail: UIViewController {
         let rootPage = BLTNPageItem(title: "Sepete başarıyla eklendi")
         rootPage.image = .okey
         rootPage.appearance.actionButtonColor = .main
-        rootPage.actionHandler = { _ in }
+        rootPage.actionHandler = { _ in
+ }
         
         return rootPage
     }
@@ -160,7 +161,7 @@ class ProductsDetail: UIViewController {
                     case .success(let success):
                         print("başarışı")
                     case .failure(let failure):
-                        print("afsasfa")
+                        print("ba")
                     }
                 }
 
@@ -183,7 +184,6 @@ class ProductsDetail: UIViewController {
     @objc func clickedAddCardButton() {
         boardManager.showBulletin(above: self)
         boardManager.backgroundViewStyle = .blurredLight
-        
     
     }
    
@@ -234,8 +234,6 @@ class ProductsDetail: UIViewController {
             }
             if let product {
                 self.configureUI(product: product)
-                
-
             }
            
         }

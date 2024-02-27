@@ -8,8 +8,11 @@
 import UIKit
 import SwipeCellKit
 
+protocol BasketPageCellDelegate {
+    func productCountDidChange(productID: Int, productCount: Int)
+}
+
 class BasketPageCell: SwipeCollectionViewCell {
-    
     static let identifier = "BasketPageCell"
     let productDetailService: ProductDetailServiceProtocol = ProductDetailService()
     
@@ -68,6 +71,7 @@ class BasketPageCell: SwipeCollectionViewCell {
     }()
     
     
+    var basketPageCellDelegate: BasketPageCellDelegate?
     
     override init(frame: CGRect) {
         super .init(frame: frame)
@@ -101,6 +105,24 @@ class BasketPageCell: SwipeCollectionViewCell {
     @objc func clickedStepper() {
         let newValue = Int(stepper.value)
         stepperLabel.text = String(newValue)
+        
+        if let product = self.product  {
+            let newPrice  = product.price! * Double(newValue)
+            productPrice.text = "\(newPrice)$"
+            
+            if let userID = FirebaseManager.shared.userID {
+                FirebaseManager.shared.changeBasketProductCount(userID: userID, product: product, currentCount: newValue) { result in
+                    switch result {
+                    case .success(_):
+            print("BAŞARILI ARTTIRMA")
+                        self.basketPageCellDelegate?.productCountDidChange(productID: product.id ?? 0, productCount: newValue)
+                    case .failure(_):
+                        fatalError()
+                    }
+                }
+            }
+            
+        }
     }
     
     

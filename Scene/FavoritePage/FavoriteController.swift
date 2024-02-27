@@ -11,12 +11,13 @@ import SwipeCellKit
 
 
 class FavoriteController: UIViewController {
-
+    
+    var selectedCategoryIndex: Int?
     var productDetailService: ProductDetailServiceProtocol = ProductDetailService()
     var products: [Product] = []
     var originalProducts: [Product] = []
     var categoryCollectionViewCategories: [Category] = [.electronics, .jewelery, .womenSClothing, .menSClothing]
-   
+    
     
     private let categoryCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -24,7 +25,9 @@ class FavoriteController: UIViewController {
         layout.minimumInteritemSpacing = 10
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .white
+        collectionView.backgroundColor = .bg
+        collectionView.showsHorizontalScrollIndicator = false
+        
         return collectionView
     }()
     
@@ -70,6 +73,8 @@ class FavoriteController: UIViewController {
         favoritTextField()
         favoriCollectionView()
         categoryCollectionViewConstrain()
+        selectedCategoryIndex = categoryCollectionViewCategories.firstIndex(of: .electronics)
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -166,6 +171,7 @@ extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelega
         case categoryCollectionView:
             let cell = categoryCollectionView.dequeueReusableCell(withReuseIdentifier: CategoryCollectionCell.identifier, for: indexPath) as! CategoryCollectionCell
             cell.configure(data: categoryCollectionViewCategories[indexPath.item])
+            cell.isSelectedCategory = indexPath.item == selectedCategoryIndex
             return cell
             
         default:
@@ -183,7 +189,7 @@ extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelega
             return(.init(width: cellWidth, height: cellHight))
         case categoryCollectionView:
             let cellWidth: CGFloat = collectionView.frame.width / 3
-            let cellHeight: CGFloat = 60
+            let cellHeight: CGFloat = collectionView.frame.height - 30
             return(.init(width: cellWidth, height: cellHeight))
         
         default:
@@ -204,6 +210,8 @@ extension FavoriteController: UICollectionViewDataSource, UICollectionViewDelega
             let selectedCategory = categoryCollectionViewCategories[indexPath.item]
             let filteredPorducts = originalProducts.filter { $0.category == selectedCategory }
             self.products = filteredPorducts
+            selectedCategoryIndex = indexPath.item
+            self.categoryCollectionView.reloadData()
             DispatchQueue.main.async {
                 self.favoriteCollectionView.reloadData()
             }
@@ -282,10 +290,10 @@ extension FavoriteController {
     func categoryCollectionViewConstrain() {
         view.addSubview(categoryCollectionView)
         NSLayoutConstraint.activate([
-            categoryCollectionView.topAnchor.constraint(equalTo: favoriteTextField.bottomAnchor),
-            categoryCollectionView.leadingAnchor.constraint(equalTo: favoriteCollectionView.leadingAnchor),
-            categoryCollectionView.trailingAnchor.constraint(equalTo: favoriteCollectionView.trailingAnchor),
-            categoryCollectionView.heightAnchor.constraint(equalToConstant: 60)
+            categoryCollectionView.topAnchor.constraint(equalTo: favoriteTextField.bottomAnchor,constant: 5),
+            categoryCollectionView.leadingAnchor.constraint(equalTo: favoriteCollectionView.leadingAnchor,constant: 10),
+            categoryCollectionView.trailingAnchor.constraint(equalTo: favoriteCollectionView.trailingAnchor,constant: -10),
+            categoryCollectionView.heightAnchor.constraint(equalToConstant: 60 )
         ])
     }
 }

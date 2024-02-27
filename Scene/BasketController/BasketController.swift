@@ -10,9 +10,35 @@ import UIKit
 import SwipeCellKit
 
 class BasketController : UIViewController {
-    var productDetailService: ProductDetailServiceProtocol = ProductDetailService()
-    var basketProducts: [Int] = []
     
+    
+    var productDetailService: ProductDetailServiceProtocol = ProductDetailService()
+    var basketProducts: [[String : Int]] = []
+    var totalBasketPrice: Double = 0.0
+    
+    private let totalPriceView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .bg
+        view.layer.cornerRadius = 15
+        view.layer.borderWidth = 2
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let totalLabelPrice: UILabel = {
+        let label = UILabel()
+        label.text = "111111111111111$"
+        label.textColor = .black
+        label.font = .systemFont(ofSize: 15, weight: .bold)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let orderButton = CustomButtons(title: "Complete Order",
+                                           titleColor: .white,
+                                           font: .systemFont(ofSize: 17),
+                                           backroundColor: .main)
     
     private let basketCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -28,13 +54,32 @@ class BasketController : UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .white
         view.addSubview(basketCollectionView)
+        view.addSubview(totalPriceView)
+        view.addSubview(totalLabelPrice)
+        view.addSubview(orderButton)
         basketCollectionViewConstrain()
+        totalPriceViewConstrain()
+        totalLabelPriceConstrain()
+        orderButtonConstrain()
         setupDelegate()
         setupRegister()
+        calculateTotalBasketPrice()
+        
+        
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        setupRadius()
+        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         fetchBasketProducts()
-        view.backgroundColor = .white
-       
+
         
     }
     
@@ -46,11 +91,44 @@ class BasketController : UIViewController {
                 self.basketProducts = userDociment.userBasketeProducts
                 DispatchQueue.main.async {
                     self.basketCollectionView.reloadData()
+                    self.calculateTotalBasketPrice()
                 }
-            case .failure(let failure):
+            case .failure(_):
                 print("asdasfererer")
             }
         }
+    }
+    
+    
+    private func calculateTotalBasketPrice() {
+        var totalPrice = 0.0
+        let group = DispatchGroup() // DispatchGroup oluştur
+
+        for productDict in basketProducts {
+            if let productCount = productDict.values.first,
+               let productID = Int(productDict.keys.first ?? "0") {
+                group.enter() // DispatchGroup'a giriş yap
+                getProductPrice(productID: productID) { productPrice in
+                    totalPrice += Double(productCount) * productPrice
+                    group.leave() // DispatchGroup'tan çıkış yap
+                }
+            }
+        }
+
+        group.notify(queue: .main) {
+            // Tüm asenkron işlemler tamamlandığında bu blok çalışır
+            self.totalLabelPrice.text = "\(totalPrice)$"
+        }
+    }
+
+
+    
+  
+    
+    func setupRadius() {
+        orderButton.layer.cornerRadius = orderButton.frame.size.height / 2
+        orderButton.layer.masksToBounds = true
+        
     }
     
     func setupRegister() {
@@ -75,8 +153,9 @@ extension BasketController: UICollectionViewDelegate, UICollectionViewDataSource
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = basketCollectionView.dequeueReusableCell(withReuseIdentifier: BasketPageCell.identifier, for: indexPath) as! BasketPageCell
         let basketProdcuts = basketProducts[indexPath.item]
-        cell.configure(id: basketProdcuts)
+        cell.configure(id: Int(basketProdcuts.keys.first ?? "0"))
         cell.delegate = self
+        cell.basketPageCellDelegate = self
         return cell
     }
     
@@ -96,7 +175,7 @@ extension BasketController: SwipeCollectionViewCellDelegate {
         let deleteAction = SwipeAction(style: .destructive, title: "DELETE") { action, indexPath in
             guard let userID = FirebaseManager.shared.userID else  { return }
             self.showSucceed(text: "", interaction: false, delay: 1)
-            self.productDetailService.getProductsDetail(id: self.basketProducts[indexPath.item] ) { product, error in
+            self.productDetailService.getProductsDetail(id: Int(self.basketProducts[indexPath.item].keys.first ?? "0") ?? 0 ) { product, error in
                 if let error = error {
                     print(error.localizedDescription)
                     
@@ -129,10 +208,82 @@ extension BasketController: SwipeCollectionViewCellDelegate {
 extension BasketController {
     func basketCollectionViewConstrain() {
         NSLayoutConstraint.activate([
-            basketCollectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            basketCollectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20), // Örnek olarak üst boşluk değeri artırıldı
             basketCollectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             basketCollectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             basketCollectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
+
+    
+    func totalPriceViewConstrain() {
+        NSLayoutConstraint.activate([
+            totalPriceView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -150), // Örnek olarak yükseklik değeri artırıldı
+            totalPriceView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            totalPriceView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            totalPriceView.heightAnchor.constraint(equalToConstant: 150) // Yükseklik değeri artırıldı
+        ])
+    }
+
+    
+    func totalLabelPriceConstrain() {
+        NSLayoutConstraint.activate([
+            totalLabelPrice.centerYAnchor.constraint(equalTo: totalPriceView.centerYAnchor),
+            totalLabelPrice.leadingAnchor.constraint(equalTo: totalPriceView.leadingAnchor,constant: 20),
+            totalLabelPrice.trailingAnchor.constraint(lessThanOrEqualTo: orderButton.leadingAnchor),
+            
+        ])
+    }
+    
+    func orderButtonConstrain() {
+        NSLayoutConstraint.activate([
+            orderButton.centerYAnchor.constraint(equalTo: totalPriceView.centerYAnchor),
+            orderButton.trailingAnchor.constraint(equalTo: totalPriceView.trailingAnchor,constant: -20),
+            orderButton.heightAnchor.constraint(equalToConstant: 50),
+            orderButton.leadingAnchor.constraint(equalTo: totalPriceView.centerXAnchor)
+            
+        ])
+    }
+}
+
+//MARK: - BasketPageCellDelegate
+extension BasketController: BasketPageCellDelegate {
+    func productCountDidChange(productID: Int, productCount: Int) {
+        let productIDString = "\(productID)"
+        if let productIndex = basketProducts.firstIndex(where: { $0.keys.contains(productIDString)}) {
+            basketProducts[productIndex][productIDString] = productCount
+
+            var totalPrice = 0.0
+            let group = DispatchGroup()
+
+            basketProducts.forEach { productDict in
+                if let productCount = productDict.values.first,
+                   let productID = Int(productDict.keys.first ?? "0") {
+                    group.enter()
+                    getProductPrice(productID: productID) { productPrice in
+                        totalPrice += Double(productCount) * productPrice
+                        group.leave()
+                    }
+                }
+            }
+
+            group.notify(queue: .main) {
+                self.totalLabelPrice.text = "\(totalPrice)$"
+            }
+        }
+    }
+
+    
+    private func getProductPrice(productID: Int, completion: @escaping (Double) -> Void) {
+        productDetailService.getProductsDetail(id: productID) { product, error in
+            if let error = error {
+                print("Hata oluştu: \(error.localizedDescription)")
+                completion(50.0) // Varsayılan fiyatı geri döndürüyoruz
+            } else {
+                let price = product?.price ?? 50.0
+                completion(price)
+            }
+        }
+    }
+
 }

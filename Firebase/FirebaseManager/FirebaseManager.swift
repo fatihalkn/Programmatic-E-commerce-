@@ -138,12 +138,16 @@ extension FirebaseManager {
             case .success(let userDocument):
                 var basketProduct = userDocument.userBasketeProducts
                 if willAdd {
-                    if basketProduct.contains(where: {$0 == product.id }) {
+                    if basketProduct.contains(where: { $0.keys.contains("\(product.id ?? 0)")}) {
                         return
                     }
-                    basketProduct.append(product.id ?? 0)
+                    if let productID = product.id {
+                        var dict: Dictionary = ["\(productID)": 1]
+                        basketProduct.append(dict)
+                    }
+                    
                 } else {
-                    if let indexToDelete = basketProduct.firstIndex(where: {$0 == product.id }) {
+                    if let indexToDelete = basketProduct.firstIndex(where: { $0.keys.contains("\(product.id ?? 0)")}) {
                         basketProduct.remove(at: indexToDelete)
                     }
                 }
@@ -160,7 +164,35 @@ extension FirebaseManager {
                 completion(.failure(failure))
             }
         }
-        
+    }
+    
+    func changeBasketProductCount(userID: String, product: Product, currentCount: Int, completion: @escaping ((Result<Void, Error>) -> Void)) {
+        fetchUserDocument { result in
+            switch result {
+            case .success(let userDocument):
+                var basketProduct = userDocument.userBasketeProducts
+                let productID = product.id ?? 0
+                if let currentProductAndCountIndex = basketProduct.firstIndex(where: { $0.keys.contains("\(productID)")}) {
+                    var currentProductAndCount = basketProduct[currentProductAndCountIndex]
+                    currentProductAndCount["\(productID)"] = currentCount
+                    basketProduct.remove(at: currentProductAndCountIndex)
+                    basketProduct.append(currentProductAndCount)
+                    
+                    let willUpdateFields = basketProduct
+                    let userDocumentRef = Firestore.firestore().collection("Users").document(userID)
+                    userDocumentRef.updateData(["userBasketeProducts": willUpdateFields]) { error  in
+                        if let error {
+                            completion(.failure(error))
+                        }
+                        completion(.success(()))
+                    }
+                }
+                
+
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
     }
     
     func fetchUserDocument(completion: @escaping ((Result<FirebaseUserDocumentModel, Error>) -> Void))  {

@@ -8,8 +8,12 @@
 import UIKit
 
 class CategoryCollectionCell: UICollectionViewCell {
+    var isSelectedCategory: Bool = false {
+        didSet {
+            categoryLabel.backgroundColor = isSelectedCategory ? .bc : .bg
+        }
+    }
     private let service = CategoryItemsService()
-    
     static let identifier = "CategoryCollectionCell"
     
     private let categoryLabel: UILabel = {
@@ -17,8 +21,9 @@ class CategoryCollectionCell: UICollectionViewCell {
         label.textAlignment = .center
         label.textColor = .black
         label.font = .systemFont(ofSize: 10, weight: .medium)
-        label.text = "14124124"
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.layer.borderWidth = 1
+        label.backgroundColor = .bg
         return label
     }()
     
@@ -30,6 +35,8 @@ class CategoryCollectionCell: UICollectionViewCell {
         categoryLabelConstarin()
 
     }
+    
+    
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -49,6 +56,8 @@ class CategoryCollectionCell: UICollectionViewCell {
     
     func setupRadius() {
         self.layer.cornerRadius = 16
+        categoryLabel.layer.cornerRadius = categoryLabel.frame.size.height / 2
+        categoryLabel.layer.masksToBounds = true
         
     }
     
@@ -95,6 +104,7 @@ class CategoryCollectionCell: UICollectionViewCell {
                     }
                 }
             }
+            
         }
     }
     
@@ -108,7 +118,7 @@ extension CategoryCollectionCell {
             categoryLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor),
             categoryLabel.leadingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leadingAnchor),
             categoryLabel.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor),
-            categoryLabel.heightAnchor.constraint(equalToConstant: 50)
+            categoryLabel.heightAnchor.constraint(equalToConstant: 30)
         ])
     }
 }
